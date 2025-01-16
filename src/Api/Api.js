@@ -1,67 +1,76 @@
+import axios from "axios";
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
 
-/* this is the backend url */
+/* this is the backend URL */
 function Domain() {
-  const port = "http://127.0.0.1:8000/api";
+  const port = "http://127.0.0.1:8080"; // Change this if the backend URL is different
   return port;
 }
-/* const authToken=null;
-export function SetAuthToken(getauthToken) {
-  //const authToken = localStorage.getItem('authToken');
-  // const authToken = authToken; 
-  authToken=getauthToken ;
-  
-} */
-//retrieve the token from local storage to use it as component
+
+/* Test connection to the backend by hitting the sys/ping API */
+export async function testBackendConnection() {
+  const domain = Domain();
+  console.log("Testing connection to backend at:", domain);
+
+  try {
+    const response = await axios.get(`${domain}/sys/ping`);
+    console.log("Ping response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error pinging the backend:", error);
+    return null;
+  }
+}
+
+/* Retrieve the token from session storage */
 export function AuthToken() {
-  /* const authToken = localStorage.getItem('authToken'); */
-  const authToken = sessionStorage.getItem('authToken');
-  /* const authToken = authToken; */
-  return authToken ;
-  
+  const authToken = sessionStorage.getItem("authToken");
+  sessionStorage.setItem("authToken", authToken);
+  console.log("Auth token from sessionStorage:", authToken);
+  return authToken;
 }
-export  function AdminName(){
-  const AdminName = sessionStorage.getItem('AdminName');
-  return AdminName;
-}
-/* window.addEventListener("beforeunload", function (event) {
-  // Check if the user is closing the window
-  if (event.currentTarget.location.pathname !== '/Admin') {
-    // Prompt the user to confirm the action
-    event.returnValue = "Are you sure you want to log out?";
-  } else {
-    // User is navigating within the page, remove the token
-    localStorage.removeItem('authToken');
-  } 
-});*/
 
-export function Logout()
-{
+/* Retrieve the admin name from session storage */
+export function AdminName() {
+  const adminName = sessionStorage.getItem("adminName");
+  sessionStorage.setItem("adminName", adminName);
+  console.log("dari Api.js", adminName);
+  console.log("Admin name from sessionStorage:", adminName);
+
+  return adminName;
+}
+
+/* Logout function */
+export function Logout() {
   sessionStorage.clear();
+  console.log("Logged out and cleared sessionStorage.");
 
-  window.addEventListener("beforeunload", function (event) {
-
-    localStorage.removeItem('authToken');
+  window.addEventListener("beforeunload", function () {
+    localStorage.removeItem("authToken");
+    console.log("Auth token removed from localStorage.");
   });
-  window.location.href = "http://localhost:3000/Login";
 
+  window.location.href = "http://localhost:3000/login";
 }
-/* const api = axios.create({
+
+/* Uncomment and modify this if you need an API instance with headers */
+const api = axios.create({
   baseURL: Domain(),
 });
 
-// Add an interceptor to include the token in headers
+// Add an interceptor to include the token in headers for requests
 api.interceptors.request.use(
   (config) => {
-    const authToken = localStorage.getItem('authToken');
+    const authToken = sessionStorage.getItem("authToken");
     if (authToken) {
       config.headers.Authorization = `Bearer ${authToken}`;
+      console.log("Added token to headers:", authToken);
     }
     return config;
   },
   (error) => {
     return Promise.reject(error);
   }
-); */
+);
+
 export default Domain;

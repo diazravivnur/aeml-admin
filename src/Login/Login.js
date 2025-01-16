@@ -3,11 +3,10 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Use useNavigate for React Router v6
 
 import Domain from "../Api/Api";
-import AdminName from "../Api/Api";
 
 function Login() {
-  const [email, setEmail] = useState("admin@gmail.com");
-  const [password, setPassword] = useState("admin");
+  const [email, setEmail] = useState("diazravivn2@gmail.com");
+  const [password, setPassword] = useState("test");
   const [error, setError] = useState(null);
   const navigate = useNavigate(); // Use useNavigate for React Router v6
 
@@ -15,22 +14,21 @@ function Login() {
     e.preventDefault();
 
     try {
-      const response = await axios.post(`${Domain()}/Login`, {
-        email,
+      const response = await axios.post(`${Domain()}/login`, {
+        userIdentifier: email,
         password,
-      }); 
-      const authToken = response.data.token;
+      });
+      const authToken = response.data.data.token;
+      const adminName = response.data.data.user.username;
 
       // Store the token in localStorage
       /* localStorage.setItem('authToken', authToken); */
-      sessionStorage.setItem('authToken', authToken);
-      sessionStorage.setItem('AdminName', response.data.admin_name);
-      
-      
+      sessionStorage.setItem("authToken", authToken);
+      sessionStorage.setItem("adminName", adminName);
+
       // Use the `navigate` function to perform navigation
       /* navigate('/Admin'); */
       window.location.href = "http://localhost:3000/Admin";
-
 
       // Handle a successful login response here
       console.log("Login successful:", response.data.message);
@@ -45,7 +43,10 @@ function Login() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-6 bg-white rounded shadow-md" style={{ marginTop: "-50px" }}>
+      <div
+        className="w-full max-w-md p-6 bg-white rounded shadow-md"
+        style={{ marginTop: "-50px" }}
+      >
         <h2 className="text-2xl font-semibold mb-4">Login</h2>
 
         <form onSubmit={handleLogin}>
@@ -64,7 +65,10 @@ function Login() {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="password" className="block font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="block font-medium text-gray-700"
+            >
               Password
             </label>
             <input
@@ -81,7 +85,10 @@ function Login() {
           {error && <p className="text-red-500 mb-4">{error}</p>}
 
           <div className="text-center">
-            <button className="w-full bg-blue-500 text-white p-2 rounded hover-bg-blue-600" type="submit">
+            <button
+              className="w-full bg-blue-500 text-white p-2 rounded hover-bg-blue-600"
+              type="submit"
+            >
               Sign In
             </button>
           </div>
