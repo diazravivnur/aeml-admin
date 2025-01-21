@@ -3,7 +3,7 @@ import { useState } from "react";
 
 /* this is the backend URL */
 function Domain() {
-  const port = "http://127.0.0.1:8080"; // Change this if the backend URL is different
+  const port = "http://127.0.0.1:8080/api/v1"; // Change this if the backend URL is different
   return port;
 }
 
@@ -50,7 +50,7 @@ export function Logout() {
     console.log("Auth token removed from localStorage.");
   });
 
-  window.location.href = "http://localhost:3000/login";
+  window.location.href = "http://localhost:3000/users/login";
 }
 
 /* Uncomment and modify this if you need an API instance with headers */
