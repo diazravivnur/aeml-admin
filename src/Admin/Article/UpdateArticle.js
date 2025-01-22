@@ -1,104 +1,103 @@
 import AdminLayout from "../../layouts/AdminLayout";
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import Swal from "sweetalert2";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft, faSave } from "@fortawesome/free-solid-svg-icons";
 import Domain from "../../Api/Api";
 import { AuthToken } from "../../Api/Api";
 import Loading from "../../layouts/Loading";
 
 function GetArticle() {
-  // Get the value of the "id" parameter from the URL
   const { id } = useParams();
-  const articleId = id;
-  const [articleData, setArticleData] = useState({});
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
-    picture: "",
+    subtitle: "",
     content: "",
-    category: "",
+    type: "",
+    pictures: [],
+    thumbnail: null,
     linkDownload: "",
   });
 
   useEffect(() => {
-    // Fetch the article data based on articleId
     axios
-      .get(`${Domain()}/articles/${articleId}`, {
-        headers: {
-          Authorization: "Bearer " + AuthToken(), // Include the token here
-        },
+      .get(`${Domain()}/admin/content/${id}`, {
+        headers: { Authorization: "Bearer " + AuthToken() },
       })
       .then((response) => {
-        const article = response.data.data; // Access the first article from the array
-
-        setArticleData(article);
-
-        // Set initial form data after receiving the response
+        const article = response.data.data;
         setFormData({
           title: article.title,
-          picture: article.image || "", // Use image field for picture
+          subtitle: article.subtitle || "",
           content: article.body,
-          category: article.type, // Assuming 'type' is for the category
-          linkDownload: article.linkDownload, // Add the download link
+          type: article.type,
+          pictures: article.images || [],
+          thumbnail: article.thumbnail || null,
+          linkDownload: article.linkDownload || "",
         });
-
         setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching article data:", error);
         setLoading(false);
       });
-  }, [articleId]);
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleUpdate = (e) => {
+  const handleFileChange = (e) => {
+    const { name } = e.target;
+    const files =
+      name === "pictures" ? Array.from(e.target.files) : e.target.files[0];
+    setFormData({ ...formData, [name]: files });
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     Swal.fire({
       icon: "question",
       title: "Are you sure you want to update this article?",
-      html: `
-        New Title: ${formData.title}<br>
-        New Picture: ${formData.picture}<br>
-        New Content: ${formData.content}<br>
-        New Category: ${formData.category}<br>
-        New Download Link: ${formData.linkDownload}
-      `,
-      showDenyButton: false,
-      showCancelButton: true,
       confirmButtonText: "Yes, Update",
-      confirmButtonColor: "#F53D65",
-      denyButtonText: "Cancel",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        axios
-          .put(`${Domain()}/articles/${articleId}`, formData, {
-            headers: {
-              Authorization: "Bearer " + AuthToken(),
-            },
-          })
-          .then((updateResponse) => {
-            Swal.fire("Update!", "", "success");
-          })
-          .catch((error) => {
-            console.error("Error updating article:", error);
-            Swal.fire(
-              "Error",
-              "An error occurred while updating the article, try again",
-              "error"
+      showCancelButton: true,
+      preConfirm: () => {
+        const payload = new FormData();
+        Object.keys(formData).forEach((key) => {
+          if (key === "pictures" && formData.pictures.length > 0) {
+            formData.pictures.forEach((file) =>
+              payload.append("pictures", file)
             );
-          });
-      } else if (result.isDenied) {
-        Swal.fire("Cancelled", "", "info");
-      }
-    });
+          } else if (key === "thumbnail" && formData.thumbnail) {
+            payload.append("thumbnail", formData.thumbnail);
+          } else {
+            payload.append(key, formData[key]);
+          }
+        });
+
+        return axios.put(`${Domain()}/admin/content/${id}`, payload, {
+          headers: {
+            Authorization: "Bearer " + AuthToken(),
+            "Content-Type": "multipart/form-data",
+          },
+        });
+      },
+    })
+      .then(() =>
+        Swal.fire("Updated!", "The article has been updated.", "success")
+      )
+      .catch((error) => {
+        console.error("Error updating article:", error);
+        Swal.fire(
+          "Error",
+          "An error occurred while updating the article.",
+          "error"
+        );
+      });
   };
 
   return (
@@ -106,102 +105,133 @@ function GetArticle() {
       {loading ? (
         <Loading />
       ) : (
-        <div className="shadow-md flex-row px-5 items-center mt-5 pl-8 pt-4 pb-4 mb-4 justify-center rounded-lg ml-10 bg-white space-y-6">
-          <form onSubmit={handleUpdate}>
-            <div className="space-y-4">
-              <h1 className="text-2xl font-semibold mb-4">
-                Title:{" "}
-                <input
-                  type="text"
-                  name="title"
-                  className="border-current w-full px-3 py-2 rounded-md"
-                  value={formData.title}
-                  onChange={handleChange}
-                />
-              </h1>
-
-              <div className="space-y-2">
-                <label className="block text-gray-700">Picture URL: </label>
-                <input
-                  type="text"
-                  name="picture"
-                  className="border-current w-full px-3 py-2 rounded-md"
-                  value={formData.picture}
-                  onChange={handleChange}
-                />
-                {articleData && articleData.image ? (
+        <div className="container mx-auto p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">Edit Article</h1>
+            <Link
+              to="/Admin/Articles"
+              className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600"
+            >
+              <FontAwesomeIcon icon={faArrowLeft} /> Back
+            </Link>
+          </div>
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white shadow-md rounded-lg p-6"
+          >
+            {/* Title Input */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Title
+              </label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                required
+              />
+            </div>
+            {/* Subtitle Input */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Subtitle
+              </label>
+              <input
+                type="text"
+                name="subtitle"
+                value={formData.subtitle}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+            {/* Content Textarea */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Content
+              </label>
+              <textarea
+                name="content"
+                value={formData.content}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                rows="6"
+                required
+              ></textarea>
+            </div>
+            {/* type Input */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">type</label>
+              <input
+                type="text"
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+            {/* Pictures Upload */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Pictures
+              </label>
+              <input
+                type="file"
+                name="pictures"
+                onChange={handleFileChange}
+                multiple
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+              <div className="grid grid-cols-3 gap-4 mt-4">
+                {formData.pictures.map((image, index) => (
                   <img
-                    src={articleData.image}
-                    alt="Article"
-                    className="w-full h-auto mt-2"
+                    key={index}
+                    src={
+                      typeof image === "string"
+                        ? image
+                        : URL.createObjectURL(image)
+                    }
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-md"
                   />
-                ) : (
-                  <p className="text-gray-500 mt-2">No image available</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-gray-700">Created at: </label>
-                  <span>
-                    {articleData.createdAt ? articleData.createdAt : "N/A"}
-                  </span>
-                </div>
-                <div>
-                  <label className="block text-gray-700">Updated at: </label>
-                  <span>
-                    {articleData.updatedAt ? articleData.updatedAt : "N/A"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-gray-700">Category: </label>
-                  <input
-                    type="text"
-                    name="category"
-                    className="border-current w-full px-3 py-2 rounded-md"
-                    value={formData.category}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-gray-700">Content: </label>
-                  <textarea
-                    value={formData.content}
-                    name="content"
-                    className="border-current w-full px-3 py-2 rounded-md"
-                    cols={60}
-                    rows={10}
-                    onChange={handleChange}
-                  ></textarea>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-gray-700">Download Link: </label>
-                  <input
-                    type="text"
-                    name="linkDownload"
-                    className="border-current w-full px-3 py-2 rounded-md"
-                    value={formData.linkDownload}
-                    onChange={handleChange}
-                  />
-                </div>
+                ))}
               </div>
             </div>
-
-            <button
-              type="submit"
-              className="bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition duration-300 mt-4"
-            >
-              Update
-            </button>
+            {/* Thumbnail Upload */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Thumbnail
+              </label>
+              <input
+                type="file"
+                name="thumbnail"
+                onChange={handleFileChange}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+            {/* Download Link */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Download Link
+              </label>
+              <input
+                type="text"
+                name="linkDownload"
+                value={formData.linkDownload}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-600"
+              >
+                <FontAwesomeIcon icon={faSave} /> Update
+              </button>
+            </div>
           </form>
         </div>
       )}

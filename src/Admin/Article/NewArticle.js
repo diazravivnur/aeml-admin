@@ -1,213 +1,238 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
 import AdminLayout from "../../layouts/AdminLayout";
 import Domain from "../../Api/Api";
 import { AuthToken } from "../../Api/Api";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faSave,
+  faArrowLeft,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
-function AddPost() {
-  const [formData, setFormData] = useState({
-    title: "",
-    picture: "",
-    content: "",
-    category_id: [], // Initialize to an empty array
-  });
+const TYPES = {
+  ARTICLE: "article",
+  PROGRAM: "program",
+  PUBLICATION: "publication",
+  INSIGHT: "insight",
+  "ABOUT-US": "about-us",
+};
 
-  const [categories, setCategories] = useState([]);
+function NewArticle() {
+  const [title, setTitle] = useState("");
+  const [subtitle, setSubtitle] = useState("");
+  const [body, setBody] = useState("");
+  const [images, setImages] = useState([]); // For multiple images
+  const [thumbnail, setThumbnail] = useState(null);
+  const [linkDownload, setLinkDownload] = useState("");
+  const [type, setType] = useState("");
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    // Fetch categories from your API and populate the categories state
-    axios
-      .get(`${Domain()}/Categories`, {
-        headers: {
-          Authorization: "Bearer " + AuthToken(), // Include the token here
-        },
-      })
-      .then((response) => {
-        setCategories(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching categories:", error);
-      });
-  }, []);
+  const handleImagesChange = (e) => {
+    const files = Array.from(e.target.files); // Convert FileList to Array
+    const newImages = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setImages((prevImages) => [...prevImages, ...newImages]); // Append new images
+  };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "category_id") {
-      // If it's the category select, split the value into an array
-      const categoryValues = value.split(":");
-      // Ensure that category_id is a single integer
-      setFormData({ ...formData, [name]: parseInt(categoryValues[0]) });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+  const handleRemoveImage = (index) => {
+    setImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Send a POST request to backend API to create a new post
-    axios
-      .post(`${Domain()}/Posts/New`, formData, {
-        headers: {
-          Authorization: "Bearer " + AuthToken(), // Include the token here
-        },
-      })
-      .then((response) => {
-        // Handle successful response (e.g., show a success message)
-        console.log("New post created:", response.data);
-        Swal.fire({
-          icon: "success",
-          title: "Post Created",
-          html: `
-            Title: ${formData.title}<br>
-            Picture: ${formData.picture}<br>
-            Content: ${formData.content}<br>
-            Category: ${getCategoryName(
-              formData.category_id
-            )} <!-- Display category name -->
-          `,
-        });
-
-        // Clear the form
-        /* setFormData({
-          title: '',
-          picture: '',
-          content: '',
-          category_id: '', // Reset to an empty string
-        }); */
-      })
-      .catch((error) => {
-        console.error("Error creating post:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Post Creation failed",
-          html: `
-          ${error}
-          Error Message: ${
-            error.response ? error.response.data.message : "An error occurred."
-          }
-          `,
-        });
-      });
-
-    // Clear the form
-    /* setFormData({
-      title: '',
-      picture: '',
-      content: '',
-      category_id: [], // Reset to an empty array
-    }); */
-    console.log(formData);
-    //this function to get category name by its id
-    function getCategoryName(categoryId) {
-      const category = categories.find((cat) => cat.id === categoryId);
-      return category ? category.name : "N/A";
+    if (!title || !body || images.length === 0 || !type) {
+      Swal.fire("Error", "Please fill in all required fields", "error");
+      return;
     }
 
-    //console.log("categoryname "+getCategoryName(formData.category_id));
-  };
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("subtitle", subtitle);
+    formData.append("body", body);
+    formData.append("type", type);
+    images.forEach(({ file }) => formData.append("image", file));
+    if (thumbnail) formData.append("thumbnail", thumbnail);
+    if (linkDownload) formData.append("linkDownload", linkDownload);
 
-  const handleClear = (e) => {
-    setFormData({
-      title: "",
-      picture: "",
-      content: "",
-      category_id: [], // Reset to an empty array
-    });
+    fetch(`${Domain()}/admin/contents`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${AuthToken()}`,
+      },
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "Content created successfully") {
+          Swal.fire("Success", "Content created successfully!", "success").then(
+            () => {
+              navigate("/Admin/Articles");
+            }
+          );
+        } else {
+          Swal.fire(
+            "Error",
+            data.message || "Failed to create content",
+            "error"
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error creating content:", error);
+        Swal.fire(
+          "Error",
+          "An error occurred while creating the content",
+          "error"
+        );
+      });
   };
 
   return (
-    <div
-      style={{ width: "900px" }}
-      className=" shadow-md flex-row px-1 mt-5 items-center pt-2 pb-2 mb-2 justify-center  rounded-lg ml-10 bg-white "
-    >
-      <h2 className="text-2xl font-semibold mb-4 text-center hover:text-indigo-500">
-        Add New Post
-      </h2>
-      <form onSubmit={handleSubmit} className="space-y-4 w-full p-1">
-        <div className="flex flex-col">
-          <label htmlFor="title" className="text-lg">
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-            className="border  rounded-lg p-2"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label htmlFor="picture" className="text-lg">
-            Picture URL
-          </label>
-          <input
-            type="text"
-            id="picture"
-            name="picture"
-            value={formData.picture}
-            onChange={handleChange}
-            required
-            className="border rounded-lg p-2"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label htmlFor="content" className="text-lg">
-            Content
-          </label>
-          <textarea
-            id="content"
-            name="content"
-            value={formData.content}
-            onChange={handleChange}
-            required
-            className="border rounded-lg p-2"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label htmlFor="category_id" className="text-lg">
-            Category
-          </label>
-          <select
-            id="category_id"
-            name="category_id"
-            value={formData.category_id}
-            onChange={handleChange}
-            required
-            className="border rounded-lg p-2"
+    <AdminLayout
+      Content={
+        <div className="container mx-auto p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">New Content</h1>
+            <Link
+              to="/Admin/Articles"
+              className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600"
+            >
+              <FontAwesomeIcon icon={faArrowLeft} /> Back
+            </Link>
+          </div>
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white shadow-md rounded-lg p-6"
           >
-            <option value="">Select a category</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+            {/* Title Input */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Title
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                required
+              />
+            </div>
+            {/* Subtitle Input */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Subtitle
+              </label>
+              <input
+                type="text"
+                value={subtitle}
+                onChange={(e) => setSubtitle(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+            {/* Body Textarea */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">Body</label>
+              <textarea
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                rows="6"
+                required
+              ></textarea>
+            </div>
+            {/* Type Dropdown */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">Type</label>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                required
+              >
+                <option value="" disabled>
+                  Select Type
+                </option>
+                {Object.keys(TYPES).map((key) => (
+                  <option key={key} value={TYPES[key]}>
+                    {TYPES[key]}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {/* Images Upload */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Images
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImagesChange}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+              <div className="grid grid-cols-3 gap-4 mt-4">
+                {images.map((image, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={image.preview}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-md"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute top-0 right-0 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <FontAwesomeIcon icon={faTimes} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Thumbnail Upload */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Thumbnail
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setThumbnail(e.target.files[0])}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+            {/* Link Download Input */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-bold mb-2">
+                Link to Download
+              </label>
+              <input
+                type="text"
+                value={linkDownload}
+                onChange={(e) => setLinkDownload(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-600"
+              >
+                <FontAwesomeIcon icon={faSave} /> Save
+              </button>
+            </div>
+          </form>
         </div>
-        <button
-          type="submit"
-          className="bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition duration-300"
-        >
-          Submit
-        </button>
-        <button
-          type="button"
-          onClick={handleClear}
-          className="bg-indigo-500 text-white py-2 px-4 rounded-lg ml-3 hover:bg-indigo-600 transition duration-300"
-        >
-          Clear
-        </button>
-      </form>
-    </div>
+      }
+    />
   );
 }
 
-function Add() {
-  return <AdminLayout Content={<AddPost />} />;
-}
-
-export default Add;
+export default NewArticle;

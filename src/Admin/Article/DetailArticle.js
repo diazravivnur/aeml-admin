@@ -18,137 +18,150 @@ function View() {
 }
 
 function GetArticle({ articleId }) {
-  const [articleData, setArticleData] = useState({});
+  const [articleData, setArticleData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Make an API GET request to retrieve the article by articleId
     axios
-      .get(`${Domain()}/articles/${articleId}`, {
+      .get(`${Domain()}/admin/content/${articleId}`, {
         headers: {
-          Authorization: "Bearer " + AuthToken(), // Include the token here
+          Authorization: `Bearer ${AuthToken()}`,
         },
       })
       .then((response) => {
-        console.log(111, response);
-        // Update the state with the received data
-        setArticleData(response.data.data); // Accessing the article data from the response
-        setLoading(false); // Data has been loaded
+        if (response.data && response.data.statusCode === 200) {
+          setArticleData(response.data.data);
+        } else {
+          Swal.fire("Error", "Content not found", "error");
+        }
+        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
-        setLoading(false); // Data loading failed
+        Swal.fire("Error", "Failed to fetch content", "error");
+        setLoading(false);
       });
-  }, [articleId]); // Include articleId in the dependency array
+  }, [articleId]);
 
-  // Conditionally render content based on loading state
+  const handleDeleteArticle = (id) => {
+    Swal.fire({
+      title: "Delete Article",
+      text: "Are you sure you want to delete this article?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios
+          .delete(`${Domain()}/admin/content/${id}`, {
+            headers: {
+              Authorization: `Bearer ${AuthToken()}`,
+            },
+          })
+          .then((response) => {
+            if (response.status === 200) {
+              Swal.fire(
+                "Article Deleted",
+                "The article has been deleted.",
+                "success"
+              );
+              // Optionally handle UI updates after deletion
+            }
+          })
+          .catch((error) => {
+            Swal.fire(
+              "Error",
+              "There was an error deleting the article",
+              "error"
+            );
+          });
+      }
+    });
+  };
+
   return (
     <>
       {loading ? (
-        // Show a loading indicator or message
         <Loading />
-      ) : (
-        <div className="shadow-md flex-row px-1 items-center mt-5 pl-5 pt-2 pb-2 mb-2 justify-center rounded-lg ml-10 bg-white">
-          <h1 className="mt-2 mb-2 text-2xl font-semibold">
-            Title : {articleData.title}
+      ) : articleData ? (
+        <div className="shadow-md flex-row px-4 py-6 mt-5 ml-10 rounded-lg bg-white">
+          <h1 className="text-2xl font-semibold mb-4">
+            Title: {articleData.title}
           </h1>
-          <div className="w-2/3">
-            {/* Render article image */}
-            {articleData.image && (
-              <img
-                src={articleData.image}
-                alt="Article"
-                className="w-full h-auto"
-              />
-            )}
-          </div>
-          <div className="mt-2 mb-2 max-w-2xl">
-            <span className="text-gray-600">Created at : </span>
-            {articleData.createdAt}
-          </div>
-          <div className="mt-2 mb-2 max-w-2xl">
-            <span className="text-gray-600">Updated at : </span>
-            {articleData.updatedAt}
-          </div>
-          <div className="mt-2 mb-2 max-w-2xl">
-            <span className="text-gray-600">Type : </span> {articleData.type}
-          </div>
-          <div className="mt-2 mb-2 max-w-2xl">
-            <span className="text-gray-600">Subtitle : </span>{" "}
-            {articleData.subtitle}
-          </div>
-          <div className="mt-2 mb-2 max-w-2xl">{articleData.body}</div>
-          <div className="mt-2 mb-2 max-w-2xl">
-            <span className="text-gray-600">Link to Download : </span>
-            <a
-              href={articleData.linkDownload}
-              className="text-blue-500"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {articleData.linkDownload}
-            </a>
+
+          {/* Render article images */}
+          {articleData.images?.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+              {articleData.images.map((image, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={image}
+                    alt={`Article Image ${index + 1}`}
+                    className="w-full h-auto object-cover rounded-lg border"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-2 mb-4">
+            <span className="text-gray-600">Created at: </span>
+            {new Date(articleData.createdAt).toLocaleString()}
           </div>
 
-          {/* Render delete functionality if needed */}
+          <div className="mt-2 mb-4">
+            <span className="text-gray-600">Updated at: </span>
+            {new Date(articleData.updatedAt).toLocaleString()}
+          </div>
+
+          <div className="mt-2 mb-4">
+            <span className="text-gray-600">Type: </span> {articleData.type}
+          </div>
+
+          <div className="mt-2 mb-4">
+            <span className="text-gray-600">Subtitle: </span>{" "}
+            {articleData.subtitle}
+          </div>
+
+          <div className="mt-2 mb-4">
+            <span className="text-gray-600">body: </span> {articleData.body}
+          </div>
+
+          {articleData.linkDownload && (
+            <div className="mt-2 mb-4">
+              <span className="text-gray-600">Link to Download: </span>
+              <a
+                href={articleData.linkDownload}
+                className="text-blue-500 underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {articleData.linkDownload}
+              </a>
+            </div>
+          )}
+
+          {/* Render delete functionality */}
           {articleData.isDeleted ? (
-            <div className="mt-2 mb-2 max-w-2xl text-red-500 text-lg font-bold">
-              This article has been deleted
+            <div className="mt-2 mb-4 text-red-500 text-lg font-bold">
+              This content has been deleted
             </div>
           ) : (
-            <>
-              {/* Render other actions or content */}
-              <div className="mt-2 mb-2 max-w-2xl">
-                <FontAwesomeIcon
-                  className="hover:cursor-pointer"
-                  icon={faTrash}
-                  onClick={() => handleDeleteArticle(articleData.id)}
-                />
-              </div>
-            </>
+            <div className="mt-2 mb-4">
+              <FontAwesomeIcon
+                className="hover:cursor-pointer text-red-500 text-xl"
+                icon={faTrash}
+                onClick={() => handleDeleteArticle(articleData.id)}
+              />
+            </div>
           )}
         </div>
+      ) : (
+        <div className="text-center text-red-500">Content not found</div>
       )}
     </>
   );
 }
-
-const handleDeleteArticle = (id) => {
-  Swal.fire({
-    title: "Delete Article",
-    text: "Are you sure you want to delete this article?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Delete",
-    cancelButtonText: "Cancel",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Make an API call to delete the article
-      axios
-        .delete(`${Domain()}/articles/${id}`, {
-          headers: {
-            Authorization: "Bearer " + AuthToken(), // Include the token here
-          },
-        })
-        .then((response) => {
-          if (response.status === 200) {
-            Swal.fire(
-              "Article Deleted",
-              "The article has been deleted.",
-              "success"
-            );
-            // Optionally handle UI updates after deletion
-          }
-        })
-        .catch((error) => {
-          Swal.fire(
-            "Error",
-            "There was an error deleting the article",
-            "error"
-          );
-        });
-    }
-  });
-};
 
 export default View;
