@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Use useNavigate for React Router v6
+import { useNavigate } from "react-router-dom"; // For navigation
 
 import Domain from "../Api/Api";
 
@@ -8,7 +8,7 @@ function Login() {
   const [email, setEmail] = useState("diazravivn2@gmail.com");
   const [password, setPassword] = useState("test");
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Use useNavigate for React Router v6
+  const navigate = useNavigate(); // Correct navigation hook
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,37 +18,28 @@ function Login() {
         userIdentifier: email,
         password,
       });
+
       const authToken = response.data.data.token;
       const adminName = response.data.data.user.username;
 
-      // Store the token in localStorage
-      /* localStorage.setItem('authToken', authToken); */
+      // Save token to sessionStorage
       sessionStorage.setItem("authToken", authToken);
       sessionStorage.setItem("adminName", adminName);
 
-      // Use the `navigate` function to perform navigation
-      /* navigate('/Admin'); */
-      window.location.href = "http://localhost:3000/Admin";
-
-      // Handle a successful login response here
-      console.log("Login successful:", response.data.message);
+      // Clear any previous error
       setError(null);
 
-      // You can redirect to a new page or update the UI as needed
+      // Navigate to Admin dashboard
+      navigate("/Admin/Articles", { replace: true });
     } catch (error) {
-      // Handle login errors
       setError("Login failed. Please check your credentials.");
     }
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div
-        className="w-full max-w-md p-6 bg-white rounded shadow-md"
-        style={{ marginTop: "-50px" }}
-      >
+      <div className="w-full max-w-md p-6 bg-white rounded shadow-md">
         <h2 className="text-2xl font-semibold mb-4">Login</h2>
-
         <form onSubmit={handleLogin}>
           <div className="mb-4">
             <label htmlFor="email" className="block font-medium text-gray-700">
@@ -56,14 +47,12 @@ function Login() {
             </label>
             <input
               type="email"
-              name="email"
               id="email"
               className="mt-1 p-2 border rounded w-full"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-
           <div className="mb-4">
             <label
               htmlFor="password"
@@ -73,25 +62,19 @@ function Login() {
             </label>
             <input
               type="password"
-              name="password"
               id="password"
               className="mt-1 p-2 border rounded w-full"
-              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-
           {error && <p className="text-red-500 mb-4">{error}</p>}
-
-          <div className="text-center">
-            <button
-              className="w-full bg-blue-500 text-white p-2 rounded hover-bg-blue-600"
-              type="submit"
-            >
-              Sign In
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+          >
+            Sign In
+          </button>
         </form>
       </div>
     </div>
