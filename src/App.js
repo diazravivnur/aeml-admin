@@ -33,7 +33,7 @@ function App() {
 
         <Route
           path="/Admin"
-          element={isAuthenticated ? <Dashboard /> : Redirect}
+          element={isAuthenticated ? <Articles /> : Redirect}
         />
         {/* Dashboard url */}
         <Route

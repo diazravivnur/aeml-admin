@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
-import Domain from '../../Api/Api';
-import { AuthToken } from '../../Api/Api';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFileAlt, faComments, faHeart, faEye, faUserCheck, faUser, faFolder } from "@fortawesome/free-solid-svg-icons";
-import { Line } from 'react-chartjs-2';
-import { CategoryScale } from "chart.js";
-import Chart from 'chart.js/auto';
-import Loading from '../../layouts/Loading';
-import axios from 'axios';
+import {
+  faFileAlt,
+  faComments,
+  faHeart,
+  faEye,
+  faUser,
+  faFolder,
+} from "@fortawesome/free-solid-svg-icons";
+import { Line } from "react-chartjs-2";
+import Chart from "chart.js/auto";
+import Loading from "../../layouts/Loading";
 
 /* AnalyticsCard component */
 function AnalyticsCard({ title, value, icon }) {
@@ -37,35 +40,99 @@ function Dashboard() {
     MonthlyVisits: [],
     MonthlyPosts: [],
     MonthlyComments: [],
-    MonthlyLikes: [],
   });
 
+  // Simulate fetching data with mock data after delay
   useEffect(() => {
-    axios.get(`${Domain()}/Dashboard`, {
-      headers: {
-        'Authorization': `Bearer ${AuthToken()}`,
-      },
-    })
-      .then(response => {
-        setDashboardData(response.data);
-        setLoading(true);
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-        setLoading(true); // Ensure loading state is updated even on error
+    setTimeout(() => {
+      setDashboardData({
+        TotalPosts: 45,
+        TotalComment: 120,
+        TotalLikes: 320,
+        TotalVisits: 5000,
+        TotalCategories: 12,
+        TotalUsers: 350,
+        ActifUsers: 200,
+        MonthlyVisits: [
+          { month: "January", visit_count: 400 },
+          { month: "February", visit_count: 450 },
+          { month: "March", visit_count: 500 },
+          { month: "April", visit_count: 550 },
+          { month: "May", visit_count: 600 },
+          { month: "June", visit_count: 650 },
+          { month: "July", visit_count: 700 },
+          { month: "August", visit_count: 750 },
+          { month: "September", visit_count: 800 },
+          { month: "October", visit_count: 850 },
+          { month: "November", visit_count: 900 },
+          { month: "December", visit_count: 950 },
+        ],
+        MonthlyPosts: [
+          { month: "January", post_count: 5 },
+          { month: "February", post_count: 6 },
+          { month: "March", post_count: 7 },
+          { month: "April", post_count: 8 },
+          { month: "May", post_count: 9 },
+          { month: "June", post_count: 10 },
+          { month: "July", post_count: 11 },
+          { month: "August", post_count: 12 },
+          { month: "September", post_count: 13 },
+          { month: "October", post_count: 14 },
+          { month: "November", post_count: 15 },
+          { month: "December", post_count: 16 },
+        ],
+        MonthlyComments: [
+          { month: "January", comment_count: 10 },
+          { month: "February", comment_count: 20 },
+          { month: "March", comment_count: 30 },
+          { month: "April", comment_count: 40 },
+          { month: "May", comment_count: 50 },
+          { month: "June", comment_count: 60 },
+          { month: "July", comment_count: 70 },
+          { month: "August", comment_count: 80 },
+          { month: "September", comment_count: 90 },
+          { month: "October", comment_count: 100 },
+          { month: "November", comment_count: 110 },
+          { month: "December", comment_count: 120 },
+        ],
       });
+      setLoading(true); // Simulate API data fetch completion
+    }, 1000);
   }, []);
 
   const dashboardContent = isLoading ? (
     <div className="container mx-auto mt-8 px-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <AnalyticsCard title="Total Posts" value={dashboardData.TotalPosts} icon={faFileAlt} />
-        <AnalyticsCard title="Total Comments" value={dashboardData.TotalComment} icon={faComments} />
-        <AnalyticsCard title="Likes Received" value={dashboardData.TotalLikes} icon={faHeart} />
-        <AnalyticsCard title="Total Visits" value={dashboardData.TotalVisits} icon={faEye} />
-        <AnalyticsCard title="Total Categories" value={dashboardData.TotalCategories} icon={faFolder} />
-        <AnalyticsCard title="Total Users" value={dashboardData.TotalUsers} icon={faUser} />
-        {/* <AnalyticsCard title="Active Users" value={dashboardData.ActifUsers} icon={faUserCheck} /> */}
+        <AnalyticsCard
+          title="Total Posts"
+          value={dashboardData.TotalPosts}
+          icon={faFileAlt}
+        />
+        <AnalyticsCard
+          title="Total Comments"
+          value={dashboardData.TotalComment}
+          icon={faComments}
+        />
+        <AnalyticsCard
+          title="Likes Received"
+          value={dashboardData.TotalLikes}
+          icon={faHeart}
+        />
+        <AnalyticsCard
+          title="Total Visits"
+          value={dashboardData.TotalVisits}
+          icon={faEye}
+        />
+        <AnalyticsCard
+          title="Total Categories"
+          value={dashboardData.TotalCategories}
+          icon={faFolder}
+        />
+        <AnalyticsCard
+          title="Total Users"
+          value={dashboardData.TotalUsers}
+          icon={faUser}
+        />
       </div>
       <Analytics
         Visits={dashboardData.MonthlyVisits}
@@ -77,9 +144,7 @@ function Dashboard() {
     <Loading />
   );
 
-  return (
-    <AdminLayout Content={dashboardContent} />
-  );
+  return <AdminLayout Content={dashboardContent} />;
 }
 
 /* Analytics component */
@@ -94,21 +159,31 @@ function Analytics({ Visits, Posts, Comments }) {
   }
 
   const orderedMonths = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   const postCounts = new Array(12).fill(0);
   const TotalComment = new Array(12).fill(0);
 
-  Posts.forEach(item => {
+  Posts.forEach((item) => {
     const monthIndex = orderedMonths.indexOf(item.month);
     if (monthIndex !== -1) {
       postCounts[monthIndex] = item.post_count;
     }
   });
 
-  Comments.forEach(item => {
+  Comments.forEach((item) => {
     const monthIndex = orderedMonths.indexOf(item.month);
     if (monthIndex !== -1) {
       TotalComment[monthIndex] = item.comment_count;
@@ -119,73 +194,45 @@ function Analytics({ Visits, Posts, Comments }) {
     labels: orderedMonths,
     datasets: [
       {
-        label: 'Visits',
-        data: Visits.map(item => item.visit_count),
-        borderColor: 'rgba(255, 159, 0, 1)',  // Darker yellow
-        borderWidth: 2,
-        fill: false,
-      },
-      {
-        label: 'Visits',
-        type: 'bar',
-        data: Visits.map(item => item.visit_count),
-        borderColor: 'rgba(75, 192, 192, 1)',
-        backgroundColor: 'rgba(75, 192, 192, 1)',
+        label: "Visits",
+        data: Visits.map((item) => item.visit_count),
+        borderColor: "rgba(255, 159, 0, 1)", // Darker yellow
         borderWidth: 2,
         fill: false,
       },
     ],
   };
-  
+
   const PostsChart = {
     labels: orderedMonths,
     datasets: [
       {
-        label: 'Posts',
+        label: "Posts",
         data: postCounts,
-        borderColor: 'rgba(54, 162, 235, 1)',  // Darker blue
-        borderWidth: 2,
-        fill: false,
-      },
-      {
-        label: 'Posts',
-        type: 'bar',
-        data: postCounts,
-        borderColor: 'rgba(255, 99, 132, 1)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        borderColor: "rgba(54, 162, 235, 1)", // Darker blue
         borderWidth: 2,
         fill: false,
       },
     ],
   };
-  
+
   const CommentsChart = {
     labels: orderedMonths,
     datasets: [
       {
-        label: 'Comments',
+        label: "Comments",
         data: TotalComment,
-        borderColor: 'rgba(153, 102, 255, 1)',  // Darker purple
-        borderWidth: 2,
-        fill: false,
-      },
-      {
-        label: 'Comments',
-        type: 'bar',
-        data: TotalComment,
-        borderColor: 'rgba(54, 162, 235, 1)',
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: "rgba(153, 102, 255, 1)", // Darker purple
         borderWidth: 2,
         fill: false,
       },
     ],
   };
-  
 
   const chartOptions = {
     scales: {
       x: {
-        type: 'category',
+        type: "category",
         grid: {
           display: false,
         },
