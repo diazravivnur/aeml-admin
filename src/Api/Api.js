@@ -4,7 +4,8 @@ import { useState } from "react";
 /* this is the backend URL */
 function Domain() {
   const baseUrl =
-    process.env.REACT_APP_URL_API_DOMAIN || "http://127.0.0.1:8080/api/v1"; // Fallback to localhost
+    process.env.REACT_APP_URL_API_DOMAIN ||
+    "https://b6e8-3-0-60-78.ngrok-free.app/api/v1"; // Fallback to localhost
   return baseUrl;
 }
 
