@@ -3,8 +3,9 @@ import { useState } from "react";
 
 /* this is the backend URL */
 function Domain() {
-  const port = "http://127.0.0.1:8080/api/v1"; // Change this if the backend URL is different
-  return port;
+  const baseUrl =
+    process.env.REACT_APP_URL_API_DOMAIN || "http://127.0.0.1:8080/api/v1"; // Fallback to localhost
+  return baseUrl;
 }
 
 /* Test connection to the backend by hitting the sys/ping API */
