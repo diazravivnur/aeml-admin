@@ -13,7 +13,8 @@ import ViewMessage from "./Admin/Inbox/ViewMessage";
 import NotFound from "./layouts/PageNotFound";
 
 function App() {
-  const isAuthenticated = !!sessionStorage.getItem("authToken"); // Check for auth token
+  const authToken = sessionStorage.getItem("authToken"); // Check for auth token
+  const isAuthenticated = !!authToken;
 
   return (
     <BrowserRouter>

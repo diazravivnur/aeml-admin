@@ -8,7 +8,7 @@ function Login() {
   const [email, setEmail] = useState("diazravivn2@gmail.com");
   const [password, setPassword] = useState("test");
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Correct navigation hook
+  const navigate = useNavigate(); // Navigation hook
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,19 +19,27 @@ function Login() {
         password,
       });
 
-      const authToken = response.data.data.token;
-      const adminName = response.data.data.user.username;
+      // Extract response data
+      const authToken = response?.data?.data?.token;
+      const adminName = response?.data?.data?.user?.username;
 
-      // Save token to sessionStorage
+      if (!authToken || !adminName) {
+        throw new Error("Invalid response data");
+      }
+
+      // Save token and username to sessionStorage
       sessionStorage.setItem("authToken", authToken);
       sessionStorage.setItem("adminName", adminName);
 
-      // Clear any previous error
+      // Clear error and log success for debugging
       setError(null);
+      console.log("Login successful. Navigating to Admin dashboard...");
 
       // Navigate to Admin dashboard
       navigate("/Admin/Articles", { replace: true });
     } catch (error) {
+      // Log error details for debugging
+      console.error("Login error:", error);
       setError("Login failed. Please check your credentials.");
     }
   };
