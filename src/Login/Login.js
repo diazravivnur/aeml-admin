@@ -15,6 +15,11 @@ function Login() {
 
     try {
       const response = await axios.post(`${Domain()}/users/login`, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          Origin: window.location.origin,
+          "ngrok-skip-browser-warning": true, // Bypass ngrok browser warning
+        },
         userIdentifier: email,
         password,
       });

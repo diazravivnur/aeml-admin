@@ -78,13 +78,16 @@ function Articles() {
 
   useEffect(() => {
     axios
-      .get(`${Domain()}/admin/all-contents`, {
+      .get(`${Domain()}/admin/contents`, {
+        method: "GET",
         headers: {
-          Authorization: "Bearer " + AuthToken(),
+          "ngrok-skip-browser-warning": "skip-browser-warning", // Bypass ngrok browser warning
+          Authorization: `Bearer ${AuthToken()}`,
         },
       })
       .then((response) => {
-        if (response.data.statusCode === 200) {
+        console.log(123, response.data);
+        if (response.data.data.statusCode === 200) {
           setArticlesData(response.data.data);
         } else {
           console.error(
