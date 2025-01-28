@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faSave } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowLeft,
+  faSave,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
 import Domain from "../../Api/Api";
 import { AuthToken } from "../../Api/Api";
 import Loading from "../../layouts/Loading";
@@ -15,9 +19,9 @@ function GetArticle() {
   const [formData, setFormData] = useState({
     title: "",
     subtitle: "",
-    content: "",
+    body: "",
     type: "",
-    pictures: [],
+    image: [],
     thumbnail: null,
     linkDownload: "",
   });
@@ -32,9 +36,9 @@ function GetArticle() {
         setFormData({
           title: article.title,
           subtitle: article.subtitle || "",
-          content: article.body,
+          body: article.body,
           type: article.type,
-          pictures: article.images || [],
+          image: article.images || [],
           thumbnail: article.thumbnail || null,
           linkDownload: article.linkDownload || "",
         });
@@ -52,10 +56,27 @@ function GetArticle() {
   };
 
   const handleFileChange = (e) => {
-    const { name } = e.target;
-    const files =
-      name === "pictures" ? Array.from(e.target.files) : e.target.files[0];
-    setFormData({ ...formData, [name]: files });
+    const files = Array.from(e.target.files);
+    setFormData((prev) => ({
+      ...prev,
+      image: [...prev.image, ...files],
+    }));
+  };
+
+  const handleRemoveImage = (index) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This image will be removed.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, remove it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updatedPictures = formData.image.filter((_, i) => i !== index);
+        setFormData({ ...formData, image: updatedPictures });
+        Swal.fire("Removed!", "The image has been removed.", "success");
+      }
+    });
   };
 
   const handleSubmit = (e) => {
@@ -68,10 +89,8 @@ function GetArticle() {
       preConfirm: () => {
         const payload = new FormData();
         Object.keys(formData).forEach((key) => {
-          if (key === "pictures" && formData.pictures.length > 0) {
-            formData.pictures.forEach((file) =>
-              payload.append("pictures", file)
-            );
+          if (key === "image") {
+            formData.image.forEach((file) => payload.append("image", file));
           } else if (key === "thumbnail" && formData.thumbnail) {
             payload.append("thumbnail", formData.thumbnail);
           } else {
@@ -146,55 +165,61 @@ function GetArticle() {
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
-            {/* Content Textarea */}
+            {/* Body Textarea */}
             <div className="mb-4">
-              <label className="block text-gray-700 font-bold mb-2">
-                Content
-              </label>
+              <label className="block text-gray-700 font-bold mb-2">Body</label>
               <textarea
-                name="content"
-                value={formData.content}
+                name="body"
+                value={formData.body}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
                 rows="6"
                 required
               ></textarea>
             </div>
-            {/* type Input */}
+            {/* Type Display */}
             <div className="mb-4">
-              <label className="block text-gray-700 font-bold mb-2">type</label>
+              <label className="block text-gray-700 font-bold mb-2">Type</label>
               <input
                 type="text"
                 name="type"
                 value={formData.type}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                readOnly
+                className="w-full px-3 py-2 border rounded-lg bg-gray-100"
               />
             </div>
             {/* Pictures Upload */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
-                Pictures
+                Images
               </label>
               <input
                 type="file"
-                name="pictures"
+                name="image"
                 onChange={handleFileChange}
                 multiple
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
               />
               <div className="grid grid-cols-3 gap-4 mt-4">
-                {formData.pictures.map((image, index) => (
-                  <img
-                    key={index}
-                    src={
-                      typeof image === "string"
-                        ? image
-                        : URL.createObjectURL(image)
-                    }
-                    alt={`Preview ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-md"
-                  />
+                {formData.image.map((image, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={
+                        typeof image === "string"
+                          ? image
+                          : URL.createObjectURL(image)
+                      }
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-md"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute top-0 right-0 bg-red-600 text-white p-1 rounded-full"
+                    >
+                      <FontAwesomeIcon icon={faTimes} />
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
