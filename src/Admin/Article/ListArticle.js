@@ -81,7 +81,6 @@ function Articles() {
       .get(`${Domain()}/admin/contents`, {
         method: "GET",
         headers: {
-          "ngrok-skip-browser-warning": "skip-browser-warning", // Bypass ngrok browser warning
           Authorization: `Bearer ${AuthToken()}`,
         },
       })
