@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom"; // For navigation
 import Domain from "../Api/Api";
 
 function Login() {
-  const [email, setEmail] = useState("diazravivn2@gmail.com");
-  const [password, setPassword] = useState("test");
+  const [email, setEmail] = useState("jivatest@gmail.com");
+  const [password, setPassword] = useState("testlogin123");
   const [error, setError] = useState(null);
   const navigate = useNavigate(); // Navigation hook
 
@@ -38,7 +38,6 @@ function Login() {
 
       // Clear error and log success for debugging
       setError(null);
-      console.log("Login successful. Navigating to Admin dashboard...");
 
       // Navigate to Admin dashboard
       navigate("/Admin/Articles", { replace: true });

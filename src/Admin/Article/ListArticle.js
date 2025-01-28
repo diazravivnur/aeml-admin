@@ -86,8 +86,7 @@ function Articles() {
         },
       })
       .then((response) => {
-        console.log(123, response.data);
-        if (response.data.data.statusCode === 200) {
+        if (response.data.statusCode === 200) {
           setArticlesData(response.data.data);
         } else {
           console.error(
