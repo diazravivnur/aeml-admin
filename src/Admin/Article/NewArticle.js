@@ -23,6 +23,7 @@ function NewArticle() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [body, setBody] = useState("");
+  const [subtitleError, setSubtitleError] = useState("");
   const [images, setImages] = useState([]); // For multiple images
   const [thumbnail, setThumbnail] = useState(null);
   const [linkDownload, setLinkDownload] = useState("");
@@ -42,11 +43,26 @@ function NewArticle() {
     setImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
 
+  const handleSubtitleChange = (e) => {
+    const value = e.target.value;
+    if (value.length > 255) {
+      setSubtitleError("Subtitle cannot exceed 255 characters.");
+    } else {
+      setSubtitleError("");
+    }
+    setSubtitle(value);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!title || !body || images.length === 0 || !type) {
       Swal.fire("Error", "Please fill in all required fields", "error");
+      return;
+    }
+
+    if (subtitleError) {
+      Swal.fire("Error", "Please fix the errors before submitting.", "error");
       return;
     }
 
@@ -130,9 +146,14 @@ function NewArticle() {
               <input
                 type="text"
                 value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                onChange={handleSubtitleChange}
+                className={`w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 ${
+                  subtitleError ? "border-red-500" : ""
+                }`}
               />
+              {subtitleError && (
+                <p className="text-red-500 text-sm mt-1">{subtitleError}</p>
+              )}
             </div>
             {/* Body Textarea */}
             <div className="mb-4">
@@ -141,7 +162,7 @@ function NewArticle() {
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
-                rows="6"
+                rows="18" // Adjusted to 18 lines
                 required
               ></textarea>
             </div>
