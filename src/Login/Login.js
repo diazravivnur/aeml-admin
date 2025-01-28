@@ -1,48 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // For navigation
-
+import { useNavigate } from "react-router-dom";
 import Domain from "../Api/Api";
+import { AuthContext } from "../AuthContext";
 
 function Login() {
   const [email, setEmail] = useState("jivatest@gmail.com");
   const [password, setPassword] = useState("testlogin123");
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Navigation hook
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // Access the login function
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
       const response = await axios.post(`${Domain()}/users/login`, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          Origin: window.location.origin,
-          "ngrok-skip-browser-warning": true, // Bypass ngrok browser warning
-        },
         userIdentifier: email,
         password,
       });
 
-      // Extract response data
       const authToken = response?.data?.data?.token;
       const adminName = response?.data?.data?.user?.username;
-
-      if (!authToken || !adminName) {
+      if (!authToken) {
         throw new Error("Invalid response data");
       }
 
-      // Save token and username to sessionStorage
-      sessionStorage.setItem("authToken", authToken);
-      sessionStorage.setItem("adminName", adminName);
-
-      // Clear error and log success for debugging
-      setError(null);
-
-      // Navigate to Admin dashboard
-      navigate("/Admin/Articles", { replace: true });
+      login(authToken, adminName); // Update global auth state
+      setError(null); // Clear errors
+      navigate("/Admin/Dashboard", { replace: true }); // Navigate after login
     } catch (error) {
-      // Log error details for debugging
       console.error("Login error:", error);
       setError("Login failed. Please check your credentials.");
     }

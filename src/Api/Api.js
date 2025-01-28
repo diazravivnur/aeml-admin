@@ -43,16 +43,18 @@ export function AdminName() {
 }
 
 /* Logout function */
-export function Logout() {
+export function Logout(navigate) {
+  // Clear session storage
   sessionStorage.clear();
   console.log("Logged out and cleared sessionStorage.");
 
-  window.addEventListener("beforeunload", function () {
-    localStorage.removeItem("authToken");
-    console.log("Auth token removed from localStorage.");
-  });
-
-  window.location.href = "http://localhost:3000/users/login";
+  // Redirect using React Router's navigate function
+  if (navigate) {
+    navigate("/Login", { replace: true });
+  } else {
+    // Fallback: direct redirection for non-React navigation
+    window.location.href = "/Login";
+  }
 }
 
 /* Uncomment and modify this if you need an API instance with headers */
