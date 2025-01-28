@@ -26,7 +26,7 @@ const TYPES = {
 function ArticlesData({ articlesData }) {
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Articles</h1>
+      <h1 className="text-2xl font-bold mb-4">Contents</h1>
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full bg-white">
           <thead className="bg-gray-800 text-white">
@@ -135,7 +135,7 @@ function Articles() {
               to="/Admin/Articles/New"
               className="bg-indigo-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-600"
             >
-              <FontAwesomeIcon icon={faPlus} /> New Article
+              <FontAwesomeIcon icon={faPlus} /> New Content
             </Link>
             <div className="flex items-center space-x-4">
               <input
