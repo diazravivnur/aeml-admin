@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "./AuthContext";
 import "./App.css";
 import Login from "./Login/Login";
 import Dashboard from "./Admin/Dashboard/Dashboard";
@@ -13,16 +15,22 @@ import ViewMessage from "./Admin/Inbox/ViewMessage";
 import NotFound from "./layouts/PageNotFound";
 
 function App() {
-  const authToken = sessionStorage.getItem("authToken"); // Check for auth token
-  const isAuthenticated = !!authToken;
+  const { isAuthenticated } = useContext(AuthContext);
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/Login" element={<Login />} />
+        <Route
+          path="/Login"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/Admin/Dashboard" replace />
+            ) : (
+              <Login />
+            )
+          }
+        />
 
-        {/* Protected Routes */}
         {isAuthenticated ? (
           <>
             <Route path="/" element={<Dashboard />} />
@@ -35,10 +43,6 @@ function App() {
               element={<UpdateArticle />}
             />
             <Route path="/Admin/Articles/:id" element={<View />} />
-            <Route path="/Admin/Categories" element={<Categories />} />
-            <Route path="/Admin/Inbox" element={<Inbox />} />
-            <Route path="/Admin/Inbox/:id" element={<ViewMessage />} />
-            <Route path="/Admin/Accounts" element={<Accounts />} />
           </>
         ) : (
           <Route path="*" element={<Navigate to="/Login" replace />} />

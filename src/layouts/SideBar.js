@@ -5,23 +5,26 @@ import {
   faFileAlt,
   faFolder,
   faInbox,
-  faUser,
-  faCog,
   faSignOutAlt,
 } from "@fortawesome/free-solid-svg-icons";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../AuthContext";
 
 function SideBar() {
   const location = useLocation();
+  const navigate = useNavigate(); // Navigation hook
+  const { logout } = useContext(AuthContext);
 
   const links = [
     { to: "/Admin/Dashboard", icon: faHome, label: "Dashboard" },
     { to: "/Admin/Articles", icon: faFileAlt, label: "Articles" },
-    { to: "/Admin/Insight", icon: faFileAlt, label: "Publication" },
-    { to: "/Admin/About-Us", icon: faFolder, label: "About-Us" },
-    { to: "/Admin/Programs", icon: faInbox, label: "Programs" },
-    { to: "/Logout", icon: faSignOutAlt, label: "Logout" },
   ];
+
+  const handleLogout = () => {
+    logout(); // Call the Logout function and redirect to Login
+    navigate("/Login", { replace: true });
+  };
 
   return (
     <nav className="border-r bg-white h-screen p-4 w-64 pt-10">
@@ -43,6 +46,14 @@ function SideBar() {
           </div>
         </Link>
       ))}
+      {/* Logout button */}
+      <div
+        onClick={handleLogout} // Handle logout click
+        className="flex items-center text-black-300 hover:text-red-500 cursor-pointer rounded-md p-2 mb-2"
+      >
+        <FontAwesomeIcon icon={faSignOutAlt} className="mr-3 text-red-500" />
+        <span>Logout</span>
+      </div>
     </nav>
   );
 }
