@@ -28,7 +28,7 @@ function Login() {
 
       login(authToken, adminName); // Update global auth state
       setError(null); // Clear errors
-      navigate("/Admin/Dashboard", { replace: true }); // Navigate after login
+      navigate("/Admin/Articles", { replace: true }); // Navigate after login
     } catch (error) {
       console.error("Login error:", error);
       setError("Login failed. Please check your credentials.");

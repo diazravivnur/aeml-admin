@@ -24,7 +24,7 @@ function App() {
           path="/Login"
           element={
             isAuthenticated ? (
-              <Navigate to="/Admin/Dashboard" replace />
+              <Navigate to="/Admin/Articles" replace />
             ) : (
               <Login />
             )
@@ -35,7 +35,7 @@ function App() {
           <>
             <Route path="/" element={<Dashboard />} />
             <Route path="/Admin" element={<Dashboard />} />
-            <Route path="/Admin/Dashboard" element={<Dashboard />} />
+            {/* <Route path="/Admin/Dashboard" element={<Dashboard />} /> */}
             <Route path="/Admin/Articles" element={<Articles />} />
             <Route path="/Admin/Articles/New" element={<Add />} />
             <Route
