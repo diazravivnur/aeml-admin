@@ -69,7 +69,7 @@ function NewArticle() {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("subtitle", subtitle);
-    formData.append("body", body);
+    formData.append("body", body.replace(/\n/g, "<br />"));
     formData.append("type", type);
     images.forEach(({ file }) => formData.append("image", file));
     if (thumbnail) formData.append("thumbnail", thumbnail);
@@ -162,7 +162,7 @@ function NewArticle() {
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
-                rows="18" // Adjusted to 18 lines
+                rows="18"
                 required
               ></textarea>
             </div>
