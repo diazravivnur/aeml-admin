@@ -125,7 +125,8 @@ function GetArticle({ articleId }) {
           </div>
 
           <div className="mt-2 mb-4">
-            <span className="text-gray-600">body: </span> {articleData.body}
+            <span className="text-gray-600">body: </span>
+            <span dangerouslySetInnerHTML={{ __html: articleData.body }} />
           </div>
 
           {articleData.linkDownload && (
