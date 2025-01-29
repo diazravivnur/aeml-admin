@@ -34,7 +34,6 @@ function ArticlesData({ articlesData }) {
               <th className="w-1/5 py-2">Title</th>
               <th className="w-1/5 py-2">Type</th>
               <th className="w-1/5 py-2">Is Showed</th>
-              <th className="w-1/5 py-2">Is Deleted</th>
               <th className="w-1/5 py-2">Created At</th>
               <th className="w-1/5 py-2">Actions</th>
             </tr>
@@ -42,10 +41,14 @@ function ArticlesData({ articlesData }) {
           <tbody>
             {articlesData.map((article) => (
               <tr key={article.id} className="text-center border-b">
-                <td className="py-2 truncate">{article.title}</td>
+                <td className="py-2 max-w-[200px] text-center">
+                  <div className="inline-block max-w-full truncate overflow-hidden text-ellipsis whitespace-nowrap">
+                    {article.title}
+                  </div>
+                </td>
+
                 <td className="py-2">{article.type}</td>
                 <td className="py-2">{article.isShowed ? "Yes" : "No"}</td>
-                <td className="py-2">{article.isDeleted ? "Yes" : "No"}</td>
                 <td className="py-2">
                   {new Date(
                     article.created_at || article.createdAt
@@ -73,7 +76,6 @@ function Articles() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState("");
-  const [isDeletedFilter, setIsDeletedFilter] = useState("");
   const [isShowedFilter, setIsShowedFilter] = useState("");
 
   useEffect(() => {
@@ -112,16 +114,12 @@ function Articles() {
     const matchesType = selectedType
       ? article.type?.toLowerCase() === selectedType.toLowerCase()
       : true;
-    const matchesIsDeleted =
-      isDeletedFilter !== ""
-        ? article.isDeleted === (isDeletedFilter === "true")
-        : true;
     const matchesIsShowed =
       isShowedFilter !== ""
         ? article.isShowed === (isShowedFilter === "true")
         : true;
 
-    return matchesSearch && matchesType && matchesIsDeleted && matchesIsShowed;
+    return matchesSearch && matchesType && matchesIsShowed;
   });
 
   const ArticlesContent = (
@@ -158,15 +156,6 @@ function Articles() {
                 ))}
               </select>
 
-              <select
-                value={isDeletedFilter}
-                onChange={(e) => setIsDeletedFilter(e.target.value)}
-                className="border px-2 py-1 rounded-md"
-              >
-                <option value="">All</option>
-                <option value="true">Deleted</option>
-                <option value="false">Not Deleted</option>
-              </select>
               <select
                 value={isShowedFilter}
                 onChange={(e) => setIsShowedFilter(e.target.value)}

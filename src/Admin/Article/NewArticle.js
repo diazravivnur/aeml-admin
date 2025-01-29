@@ -24,6 +24,7 @@ function NewArticle() {
   const [subtitle, setSubtitle] = useState("");
   const [body, setBody] = useState("");
   const [subtitleError, setSubtitleError] = useState("");
+  const [titleError, setTitleError] = useState("");
   const [images, setImages] = useState([]); // For multiple images
   const [thumbnail, setThumbnail] = useState(null);
   const [linkDownload, setLinkDownload] = useState("");
@@ -53,6 +54,16 @@ function NewArticle() {
     setSubtitle(value);
   };
 
+  const handleTitleChange = (e) => {
+    const value = e.target.value;
+    if (value.length > 140) {
+      setTitleError("Title cannot exceed 140 characters.");
+    } else {
+      setTitleError("");
+    }
+    setTitle(value);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -62,6 +73,11 @@ function NewArticle() {
     }
 
     if (subtitleError) {
+      Swal.fire("Error", "Please fix the errors before submitting.", "error");
+      return;
+    }
+
+    if (titleError) {
       Swal.fire("Error", "Please fix the errors before submitting.", "error");
       return;
     }
@@ -133,10 +149,15 @@ function NewArticle() {
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                onChange={handleTitleChange}
+                className={`w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 ${
+                  titleError ? "border-red-500" : ""
+                }`}
                 required
               />
+              {titleError && (
+                <p className="text-red-500 text-sm mt-1">{titleError}</p>
+              )}
             </div>
             {/* Subtitle Input */}
             <div className="mb-4">
@@ -217,7 +238,7 @@ function NewArticle() {
               </div>
             </div>
             {/* Thumbnail Upload */}
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
                 Thumbnail
               </label>
@@ -227,7 +248,7 @@ function NewArticle() {
                 onChange={(e) => setThumbnail(e.target.files[0])}
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
               />
-            </div>
+            </div> */}
             {/* Link Download Input */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">

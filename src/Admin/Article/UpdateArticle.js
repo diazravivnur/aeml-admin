@@ -224,7 +224,7 @@ function GetArticle() {
               </div>
             </div>
             {/* Thumbnail Upload */}
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
                 Thumbnail
               </label>
@@ -234,7 +234,7 @@ function GetArticle() {
                 onChange={handleFileChange}
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
               />
-            </div>
+            </div> */}
             {/* Download Link */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">

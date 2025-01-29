@@ -17,7 +17,7 @@ function SideBar() {
   const { logout } = useContext(AuthContext);
 
   const links = [
-    { to: "/Admin/Dashboard", icon: faHome, label: "Dashboard" },
+    // { to: "/Admin/Dashboard", icon: faHome, label: "Dashboard" },
     { to: "/Admin/Articles", icon: faFileAlt, label: "Articles" },
   ];
 
@@ -33,7 +33,7 @@ function SideBar() {
           <div
             className={`flex items-center text-black-300 hover:text-blue-500 cursor-pointer rounded-md p-2 mb-2 ${
               location.pathname === link.to ||
-              (location.pathname === "/Admin" && link.to === "/Admin/Dashboard")
+              (location.pathname === "/Admin" && link.to === "/Admin/Articles")
                 ? "bg-gray-200"
                 : ""
             }`}
