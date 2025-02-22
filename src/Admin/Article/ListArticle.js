@@ -33,8 +33,8 @@ function ArticlesData({ articlesData }) {
             <tr>
               <th className="w-1/5 py-2">Title</th>
               <th className="w-1/5 py-2">Type</th>
-              <th className="w-1/5 py-2">Is Showed</th>
-              <th className="w-1/5 py-2">Created At</th>
+              <th className="w-1/5 py-2">Active</th>
+              <th className="w-1/5 py-2">Date Created</th>
               <th className="w-1/5 py-2">Actions</th>
             </tr>
           </thead>

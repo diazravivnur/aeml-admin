@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 import Loading from "../../layouts/Loading";
+import moment from "moment";
 
 function View() {
   // Get the value of the "id" parameter from the URL
@@ -106,13 +107,13 @@ function GetArticle({ articleId }) {
           )}
 
           <div className="mt-2 mb-4">
-            <span className="text-gray-600">Created at: </span>
-            {new Date(articleData.createdAt).toLocaleString()}
+            <span className="text-gray-600">Date Created: </span>
+            {moment(articleData.createdAt).format("MMM D, YYYY [at] h:mm A")}
           </div>
 
           <div className="mt-2 mb-4">
-            <span className="text-gray-600">Updated at: </span>
-            {new Date(articleData.updatedAt).toLocaleString()}
+            <span className="text-gray-600">Date Updated: </span>
+            {moment(articleData.updatedAt).format("MMM D, YYYY [at] h:mm A")}
           </div>
 
           <div className="mt-2 mb-4">

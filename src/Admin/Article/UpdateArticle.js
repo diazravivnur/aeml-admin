@@ -16,6 +16,8 @@ import Loading from "../../layouts/Loading";
 function GetArticle() {
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
+  const [removedImages, setRemovedImages] = useState([]);
+
   const [formData, setFormData] = useState({
     title: "",
     subtitle: "",
@@ -72,8 +74,17 @@ function GetArticle() {
       confirmButtonText: "Yes, remove it!",
     }).then((result) => {
       if (result.isConfirmed) {
+        const removedImage = formData.image[index];
+
+        // If it's an existing URL, track it for deletion
+        if (typeof removedImage === "string") {
+          setRemovedImages((prev) => [...prev, removedImage]);
+        }
+
+        // Update state to remove the image
         const updatedPictures = formData.image.filter((_, i) => i !== index);
         setFormData({ ...formData, image: updatedPictures });
+
         Swal.fire("Removed!", "The image has been removed.", "success");
       }
     });
@@ -88,15 +99,25 @@ function GetArticle() {
       showCancelButton: true,
       preConfirm: () => {
         const payload = new FormData();
+
         Object.keys(formData).forEach((key) => {
           if (key === "image") {
-            formData.image.forEach((file) => payload.append("image", file));
+            formData.image.forEach((file) => {
+              if (typeof file !== "string") {
+                payload.append("image", file);
+              }
+            });
           } else if (key === "thumbnail" && formData.thumbnail) {
             payload.append("thumbnail", formData.thumbnail);
           } else {
             payload.append(key, formData[key]);
           }
         });
+
+        // Attach removed images as a JSON string
+        if (removedImages.length > 0) {
+          payload.append("removedImages", JSON.stringify(removedImages));
+        }
 
         return axios.put(`${Domain()}/admin/content/${id}`, payload, {
           headers: {
