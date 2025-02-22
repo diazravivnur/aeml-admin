@@ -18,7 +18,7 @@ function SideBar() {
 
   const links = [
     // { to: "/Admin/Dashboard", icon: faHome, label: "Dashboard" },
-    { to: "/Admin/Articles", icon: faFileAlt, label: "Articles" },
+    { to: "/Admin/Articles", icon: faFileAlt, label: "Website Contents" },
   ];
 
   const handleLogout = () => {

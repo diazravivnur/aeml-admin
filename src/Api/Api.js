@@ -35,8 +35,6 @@ export function AuthToken() {
 export function AdminName() {
   const adminName = sessionStorage.getItem("adminName");
   sessionStorage.setItem("adminName", adminName);
-  console.log("dari Api.js", adminName);
-  console.log("Admin name from sessionStorage:", adminName);
 
   return adminName;
 }
