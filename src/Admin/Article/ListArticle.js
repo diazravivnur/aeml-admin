@@ -14,6 +14,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import Loading from "../../layouts/Loading";
+import moment from "moment";
 
 const TYPES = {
   ARTICLE: "article",
@@ -50,9 +51,9 @@ function ArticlesData({ articlesData }) {
                 <td className="py-2">{article.type}</td>
                 <td className="py-2">{article.isShowed ? "Yes" : "No"}</td>
                 <td className="py-2">
-                  {new Date(
-                    article.created_at || article.createdAt
-                  ).toLocaleString()}
+                  {moment(article.created_at || article.createdAt).format(
+                    "MMM D, YYYY [at] h:mm A"
+                  )}
                 </td>
                 <td className="py-2 flex justify-around">
                   <Link to={`/Admin/Articles/${article.id}`}>
