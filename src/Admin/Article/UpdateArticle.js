@@ -1,7 +1,7 @@
 import AdminLayout from "../../layouts/AdminLayout";
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -17,6 +17,7 @@ function GetArticle() {
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
   const [removedImages, setRemovedImages] = useState([]);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -114,9 +115,13 @@ function GetArticle() {
           }
         });
 
-        // Attach removed images as a JSON string
-        if (removedImages.length > 0) {
-          payload.append("removedImages", JSON.stringify(removedImages));
+        // Attach removed images
+        if (Array.isArray(removedImages) && removedImages.length > 0) {
+          removedImages.forEach((image) => {
+            payload.append("removedImages[]", image);
+          });
+        } else {
+          payload.append("removedImages[]", "");
         }
 
         return axios.put(`${Domain()}/admin/content/${id}`, payload, {
@@ -127,9 +132,13 @@ function GetArticle() {
         });
       },
     })
-      .then(() =>
-        Swal.fire("Updated!", "The article has been updated.", "success")
-      )
+      .then(() => {
+        Swal.fire("Updated!", "The article has been updated.", "success").then(
+          () => {
+            navigate("/Admin/Articles"); // Redirect to Dashboard
+          }
+        );
+      })
       .catch((error) => {
         console.error("Error updating article:", error);
         Swal.fire(
