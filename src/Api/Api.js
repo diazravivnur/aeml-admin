@@ -27,7 +27,6 @@ export async function testBackendConnection() {
 export function AuthToken() {
   const authToken = sessionStorage.getItem("authToken");
   sessionStorage.setItem("authToken", authToken);
-  console.log("Auth token from sessionStorage:", authToken);
   return authToken;
 }
 
