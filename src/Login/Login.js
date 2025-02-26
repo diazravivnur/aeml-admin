@@ -5,8 +5,8 @@ import Domain from "../Api/Api";
 import { AuthContext } from "../AuthContext";
 
 function Login() {
-  const [email, setEmail] = useState("jivatest@gmail.com");
-  const [password, setPassword] = useState("testlogin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { login } = useContext(AuthContext); // Access the login function
