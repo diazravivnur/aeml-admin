@@ -26,7 +26,7 @@ function Login() {
         throw new Error("Invalid response data");
       }
 
-      login(authToken, adminName); // Update global auth state
+      login(authToken, adminName);
       setError(null); // Clear errors
       navigate("/Admin/Articles", { replace: true }); // Navigate after login
     } catch (error) {
