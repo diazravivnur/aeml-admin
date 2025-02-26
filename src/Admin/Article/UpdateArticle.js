@@ -17,6 +17,7 @@ function GetArticle() {
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
   const [removedImages, setRemovedImages] = useState([]);
+  const [updating, setUpdating] = useState(false);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -99,6 +100,15 @@ function GetArticle() {
       confirmButtonText: "Yes, Update",
       showCancelButton: true,
       preConfirm: () => {
+        Swal.fire({
+          title: "Updating...",
+          text: "Please wait while the article is being updated.",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+  
         const payload = new FormData();
 
         Object.keys(formData).forEach((key) => {
@@ -123,7 +133,7 @@ function GetArticle() {
         } else {
           payload.append("removedImages[]", "");
         }
-
+  
         return axios.put(`${Domain()}/admin/content/${id}`, payload, {
           headers: {
             Authorization: "Bearer " + AuthToken(),
@@ -132,20 +142,24 @@ function GetArticle() {
         });
       },
     })
-      .then(() => {
-        Swal.fire("Updated!", "The article has been updated.", "success").then(
-          () => {
-            navigate("/Admin/Articles"); // Redirect to Dashboard
-          }
-        );
+    .then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            icon: "success",
+            title: "Updated!",
+            text: "The article has been successfully updated.",
+          }).then(() => {
+            navigate("/Admin/Articles");
+          });
+        }
       })
       .catch((error) => {
         console.error("Error updating article:", error);
-        Swal.fire(
-          "Error",
-          "An error occurred while updating the article.",
-          "error"
-        );
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "An error occurred while updating the article.",
+        });
       });
   };
 
@@ -280,13 +294,18 @@ function GetArticle() {
             </div>
             {/* Submit Button */}
             <div className="flex justify-end">
+            {updating ? (
+              <Loading />
+            ) : (
               <button
                 type="submit"
                 className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-600"
               >
                 <FontAwesomeIcon icon={faSave} /> Update
               </button>
-            </div>
+            )}
+          </div>
+
           </form>
         </div>
       )}
