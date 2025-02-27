@@ -86,7 +86,6 @@ function NewArticle() {
     if (thumbnail) formData.append("thumbnail", thumbnail);
     if (linkDownload) formData.append("linkDownload", linkDownload);
 
-    // Show loading Swal
     Swal.fire({
       title: "Saving...",
       text: "Please wait while we save your content.",
