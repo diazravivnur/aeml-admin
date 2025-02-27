@@ -34,7 +34,6 @@ function ArticlesData({ articlesData }) {
             <tr>
               <th className="w-1/5 py-2">Title</th>
               <th className="w-1/5 py-2">Type</th>
-              <th className="w-1/5 py-2">Active</th>
               <th className="w-1/5 py-2">Date Created</th>
               <th className="w-1/5 py-2">Actions</th>
             </tr>
@@ -49,7 +48,6 @@ function ArticlesData({ articlesData }) {
                 </td>
 
                 <td className="py-2">{article.type}</td>
-                <td className="py-2">{article.isShowed ? "Yes" : "No"}</td>
                 <td className="py-2">
                   {moment(article.created_at || article.createdAt).format(
                     "MMM D, YYYY [at] h:mm A"
