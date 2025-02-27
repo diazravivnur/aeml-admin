@@ -72,12 +72,7 @@ function NewArticle() {
       return;
     }
 
-    if (subtitleError) {
-      Swal.fire("Error", "Please fix the errors before submitting.", "error");
-      return;
-    }
-
-    if (titleError) {
+    if (subtitleError || titleError) {
       Swal.fire("Error", "Please fix the errors before submitting.", "error");
       return;
     }
@@ -90,6 +85,16 @@ function NewArticle() {
     images.forEach(({ file }) => formData.append("image", file));
     if (thumbnail) formData.append("thumbnail", thumbnail);
     if (linkDownload) formData.append("linkDownload", linkDownload);
+
+    // Show loading Swal
+    Swal.fire({
+      title: "Saving...",
+      text: "Please wait while we save your content.",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     fetch(`${Domain()}/admin/contents`, {
       method: "POST",
