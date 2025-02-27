@@ -14,6 +14,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import Loading from "../../layouts/Loading";
 import moment from "moment";
+import Swal from "sweetalert2";
 
 const TYPES = {
   ARTICLE: "article",
@@ -79,6 +80,7 @@ function Articles() {
   const [isShowedFilter, setIsShowedFilter] = useState("");
 
   useEffect(() => {
+    Loading(); // Show SweetAlert loading
     axios
       .get(`${Domain()}/admin/contents`, {
         method: "GET",
@@ -95,10 +97,12 @@ function Articles() {
             response.data.message
           );
         }
-        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
+      })
+      .finally(() => {
+        Swal.close(); // Close SweetAlert loading when done
         setLoading(false);
       });
   }, []);
@@ -125,7 +129,7 @@ function Articles() {
   const ArticlesContent = (
     <div className="p-4">
       {loading ? (
-        <Loading />
+        Loading()
       ) : (
         <>
           <div className="flex justify-between mb-4">

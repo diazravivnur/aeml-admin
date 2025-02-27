@@ -47,10 +47,12 @@ function GetArticle() {
           linkDownload: article.linkDownload || "",
         });
         setLoading(false);
+        Swal.close(); // Close the loading modal here
       })
       .catch((error) => {
         console.error("Error fetching article data:", error);
         setLoading(false);
+        Swal.close();
       });
   }, [id]);
 
@@ -108,7 +110,7 @@ function GetArticle() {
             Swal.showLoading();
           },
         });
-  
+
         const payload = new FormData();
 
         Object.keys(formData).forEach((key) => {
@@ -133,7 +135,7 @@ function GetArticle() {
         } else {
           payload.append("removedImages[]", "");
         }
-  
+
         return axios.put(`${Domain()}/admin/content/${id}`, payload, {
           headers: {
             Authorization: "Bearer " + AuthToken(),
@@ -142,7 +144,7 @@ function GetArticle() {
         });
       },
     })
-    .then((result) => {
+      .then((result) => {
         if (result.isConfirmed) {
           Swal.fire({
             icon: "success",
@@ -294,18 +296,17 @@ function GetArticle() {
             </div>
             {/* Submit Button */}
             <div className="flex justify-end">
-            {updating ? (
-              <Loading />
-            ) : (
-              <button
-                type="submit"
-                className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-600"
-              >
-                <FontAwesomeIcon icon={faSave} /> Update
-              </button>
-            )}
-          </div>
-
+              {updating ? (
+                <Loading />
+              ) : (
+                <button
+                  type="submit"
+                  className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-600"
+                >
+                  <FontAwesomeIcon icon={faSave} /> Update
+                </button>
+              )}
+            </div>
           </form>
         </div>
       )}

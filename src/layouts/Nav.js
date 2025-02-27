@@ -8,7 +8,7 @@ function Nav() {
   return (
     <nav className="border bg-white p-4 flex justify-between items-center">
       {/* Logo and Text */}
-      <Link to="/Admin/" className="flex items-center space-x-4">
+      <Link to="/Admin/Articles" className="flex items-center space-x-4">
         <img
           src="https://res.cloudinary.com/dwcbcgccc/image/upload/v1740202928/image/wsb1ru5kha87dq1tkfif.png"
           className="w-32 h-14 rounded" // Adjusted size

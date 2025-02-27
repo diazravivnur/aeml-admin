@@ -23,6 +23,7 @@ function GetArticle({ articleId }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    Loading(); // Show SweetAlert loading
     axios
       .get(`${Domain()}/admin/content/${articleId}`, {
         headers: {
@@ -35,11 +36,13 @@ function GetArticle({ articleId }) {
         } else {
           Swal.fire("Error", "Content not found", "error");
         }
-        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
         Swal.fire("Error", "Failed to fetch content", "error");
+      })
+      .finally(() => {
+        Swal.close(); // Close SweetAlert loading when the request completes
         setLoading(false);
       });
   }, [articleId]);
@@ -54,6 +57,8 @@ function GetArticle({ articleId }) {
       cancelButtonText: "Cancel",
     }).then((result) => {
       if (result.isConfirmed) {
+        Loading(); // Show loading before the delete request
+
         axios
           .delete(`${Domain()}/admin/content/${id}`, {
             headers: {
@@ -67,7 +72,7 @@ function GetArticle({ articleId }) {
                 "The article has been deleted.",
                 "success"
               );
-              // Optionally handle UI updates after deletion
+              setArticleData((prevData) => ({ ...prevData, isDeleted: true })); // Mark as deleted
             }
           })
           .catch((error) => {
@@ -76,6 +81,9 @@ function GetArticle({ articleId }) {
               "There was an error deleting the article",
               "error"
             );
+          })
+          .finally(() => {
+            Swal.close(); // Close loading modal after the request finishes
           });
       }
     });
@@ -83,9 +91,7 @@ function GetArticle({ articleId }) {
 
   return (
     <>
-      {loading ? (
-        <Loading />
-      ) : articleData ? (
+      {articleData && (
         <div className="shadow-md flex-row px-4 py-6 mt-5 ml-10 rounded-lg bg-white">
           <h1 className="text-2xl font-semibold mb-4">
             Title: {articleData.title}
@@ -126,7 +132,7 @@ function GetArticle({ articleId }) {
           </div>
 
           <div className="mt-2 mb-4">
-            <span className="text-gray-600">body: </span>
+            <span className="text-gray-600">Body: </span>
             <span dangerouslySetInnerHTML={{ __html: articleData.body }} />
           </div>
 
@@ -159,8 +165,6 @@ function GetArticle({ articleId }) {
             </div>
           )}
         </div>
-      ) : (
-        <div className="text-center text-red-500">Content not found</div>
       )}
     </>
   );
