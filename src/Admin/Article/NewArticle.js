@@ -13,10 +13,7 @@ import Swal from "sweetalert2";
 
 const TYPES = {
   ARTICLE: "article",
-  PROGRAM: "program",
-  PUBLICATION: "publication",
-  INSIGHT: "insight",
-  "ABOUT-US": "about-us",
+  PORTFOLIO: "portfolio",
 };
 
 function NewArticle() {

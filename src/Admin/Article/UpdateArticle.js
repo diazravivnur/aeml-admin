@@ -58,6 +58,17 @@ function GetArticle() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "title" && value.length > 140) {
+      Swal.fire("Error", "Title cannot exceed 140 characters.", "error");
+      return;
+    }
+
+    if (name === "subtitle" && value.length > 255) {
+      Swal.fire("Error", "Subtitle cannot exceed 255 characters.", "error");
+      return;
+    }
+
     setFormData({ ...formData, [name]: value });
   };
 
@@ -216,7 +227,7 @@ function GetArticle() {
               <label className="block text-gray-700 font-bold mb-2">Body</label>
               <textarea
                 name="body"
-                value={formData.body}
+                value={formData.body.replace(/<br\s*\/?>/g, "\n")} // Convert <br> to new lines
                 onChange={handleChange}
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
                 rows="6"
