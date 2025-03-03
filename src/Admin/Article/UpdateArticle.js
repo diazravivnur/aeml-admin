@@ -222,18 +222,35 @@ function GetArticle() {
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
-            {/* Body Textarea */}
+            {/* Body Textarea (Editing Mode) */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">Body</label>
               <textarea
                 name="body"
-                value={formData.body.replace(/<br\s*\/?>/g, "\n")} // Convert <br> to new lines
-                onChange={handleChange}
+                value={formData.body.replace(/<br\s*\/?>/g, "\n")} // Convert <br> to newlines for editing
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    body: e.target.value.replace(/\n/g, "<br />"),
+                  })
+                } // Convert newlines back to <br />
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
                 rows="6"
                 required
               ></textarea>
             </div>
+
+            {/* Body Preview (Formatted Output) */}
+            <div className="mb-4 p-4 border rounded-lg bg-gray-100">
+              <label className="block text-gray-700 font-bold mb-2">
+                Preview
+              </label>
+              <div
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: formData.body }}
+              ></div>
+            </div>
+
             {/* Type Display */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">Type</label>
