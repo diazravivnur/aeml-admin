@@ -11,20 +11,21 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import ApiService from "../Services/ApiService";
 import { Link } from "react-router-dom";
 import Loading from "../../layouts/Loading";
 import moment from "moment";
 import Swal from "sweetalert2";
 
 const TYPES = {
-  ARTICLE: "article",
-  PORTFOLIO: "portfolio",
+  KEGIATAN: "kegiatan",
+  PUBLICATION: "publication",
 };
 
-function ArticlesData({ articlesData }) {
+function ArticlesData({ articlesData, title }) {
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Contents</h1>
+      <h1 className="text-2xl font-bold mb-4">{title || "Contents"}</h1>
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full bg-white">
           <thead className="bg-gray-800 text-white">
@@ -71,33 +72,22 @@ function Articles() {
   const [articlesData, setArticlesData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [selectedType, setSelectedType] = useState("");
+  const [selectedType, setSelectedType] = useState(TYPES.KEGIATAN);
   const [isShowedFilter, setIsShowedFilter] = useState("");
 
   useEffect(() => {
-    Loading(); // Show SweetAlert loading
-    axios
-      .get(`${Domain()}/admin/contents`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${AuthToken()}`,
-        },
-      })
-      .then((response) => {
-        if (response.data.statusCode === 200) {
-          setArticlesData(response.data.data);
-        } else {
-          console.error(
-            "Failed to fetch articles data:",
-            response.data.message
-          );
-        }
+    Loading();
+    const endpoint = "articles";
+    ApiService.fetchList(endpoint)
+      .then((data) => {
+        const items = Array.isArray(data) ? data : data?.data || [];
+        setArticlesData(items);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       })
       .finally(() => {
-        Swal.close(); // Close SweetAlert loading when done
+        Swal.close();
         setLoading(false);
       });
   }, []);
@@ -130,9 +120,10 @@ function Articles() {
           <div className="flex justify-between mb-4">
             <Link
               to="/Admin/Articles/New"
+              state={{ initialType: TYPES.KEGIATAN }}
               className="bg-indigo-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-600"
             >
-              <FontAwesomeIcon icon={faPlus} /> New Content
+              <FontAwesomeIcon icon={faPlus} /> New Kegiatan
             </Link>
             <div className="flex items-center space-x-4">
               <input
@@ -142,18 +133,7 @@ function Articles() {
                 onChange={handleSearchChange}
                 className="border px-2 py-1 rounded-md"
               />
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="border px-2 py-1 rounded-md"
-              >
-                <option value="">All Types</option>
-                {Object.entries(TYPES).map(([key, value]) => (
-                  <option key={key} value={value}>
-                    {key}
-                  </option>
-                ))}
-              </select>
+              {/* Type selector removed; this view is Articles-only */}
 
               <select
                 value={isShowedFilter}
@@ -166,7 +146,7 @@ function Articles() {
               </select>
             </div>
           </div>
-          <ArticlesData articlesData={filteredArticles} />
+          <ArticlesData articlesData={filteredArticles} title="Kegiatan" />
         </>
       )}
     </div>

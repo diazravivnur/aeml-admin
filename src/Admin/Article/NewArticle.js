@@ -1,6 +1,7 @@
 import AdminLayout from "../../layouts/AdminLayout";
 import Domain from "../../Api/Api";
 import { AuthToken } from "../../Api/Api";
+import ApiService from "../Services/ApiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faSave,
@@ -8,12 +9,12 @@ import {
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 const TYPES = {
-  ARTICLE: "article",
-  PORTFOLIO: "portfolio",
+  KEGIATAN: "kegiatan",
+  PUBLICATION: "publication",
 };
 
 function NewArticle() {
@@ -25,7 +26,9 @@ function NewArticle() {
   const [images, setImages] = useState([]); // For multiple images
   const [thumbnail, setThumbnail] = useState(null);
   const [linkDownload, setLinkDownload] = useState("");
-  const [type, setType] = useState("");
+  const location = useLocation();
+  const preselectedType = location.state?.initialType || "";
+  const [type, setType] = useState(preselectedType);
   const navigate = useNavigate();
 
   const handleImagesChange = (e) => {
@@ -92,14 +95,9 @@ function NewArticle() {
       },
     });
 
-    fetch(`${Domain()}/admin/contents`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${AuthToken()}`,
-      },
-      body: formData,
-    })
-      .then((response) => response.json())
+    const endpoint = "admin/contents";
+    // const endpoint = type === TYPES.PUBLICATION ? "publications" : "articles";
+    ApiService.createItem(endpoint, formData)
       .then((data) => {
         if (data.status === "Content created successfully") {
           Swal.fire("Success", "Content created successfully!", "success").then(
@@ -110,7 +108,7 @@ function NewArticle() {
         } else {
           Swal.fire(
             "Error",
-            data.message || "Failed to create content",
+            data.message || data.error || "Failed to create content",
             "error"
           );
         }
@@ -130,7 +128,13 @@ function NewArticle() {
       Content={
         <div className="container mx-auto p-4">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">New Content</h1>
+            <h1 className="text-2xl font-bold">
+              {type === TYPES.PUBLICATION
+                ? "New Publication"
+                : type === TYPES.KEGIATAN
+                ? "New Kegiatan"
+                : "New Content"}
+            </h1>
             <Link
               to="/Admin/Articles"
               className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600"
@@ -188,24 +192,38 @@ function NewArticle() {
                 required
               ></textarea>
             </div>
-            {/* Type Dropdown */}
+            {/* Type (auto-filled and locked when coming from a section) */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">Type</label>
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
-                required
-              >
-                <option value="" disabled>
-                  Select Type
-                </option>
-                {Object.keys(TYPES).map((key) => (
-                  <option key={key} value={TYPES[key]}>
-                    {TYPES[key]}
-                  </option>
-                ))}
-              </select>
+              {preselectedType ? (
+                <select
+                  value={type}
+                  disabled
+                  className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-700"
+                >
+                  <option value={type}>{type}</option>
+                </select>
+              ) : (
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 ${
+                    !type ? "text-gray-400" : ""
+                  }`}
+                  required
+                >
+                  {!type && (
+                    <option value="" disabled>
+                      Select Type
+                    </option>
+                  )}
+                  {Object.keys(TYPES).map((key) => (
+                    <option key={key} value={TYPES[key]}>
+                      {TYPES[key]}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             {/* Images Upload */}
             <div className="mb-4">

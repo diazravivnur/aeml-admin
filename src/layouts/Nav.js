@@ -10,11 +10,11 @@ function Nav() {
       {/* Logo and Text */}
       <Link to="/Admin/Articles" className="flex items-center space-x-4">
         <img
-          src="https://res.cloudinary.com/dwcbcgccc/image/upload/v1740653689/image/j8dgk9qjysck7zsbhkih.png"
+          src="/aeml-logo.png"
           className="w-30 h-14 rounded" // Adjusted size
-          alt="Logo"
+          alt="AEML Logo"
         />
-        <span className="font-bold text-l">Blog Admin</span>
+        <span className="font-bold text-l">Admin</span>
       </Link>
 
       {/* Admin Profile Section */}
