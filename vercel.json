@@ -1,7 +1,7 @@
 {
-  "routes": [
-    { "src": "/manifest.json", "dest": "/manifest.json" },
-    { "src": "/aeml-logo.png", "dest": "/aeml-logo.png" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/manifest.json", "destination": "/manifest.json" },
+    { "source": "/aeml-logo.png", "destination": "/aeml-logo.png" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
