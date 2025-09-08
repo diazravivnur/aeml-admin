@@ -1,8 +1,7 @@
 {
-  "builds": [
-    { "src": "package.json", "use": "@vercel/static-build" }
-  ],
   "routes": [
-    { "src": "/.*", "dest": "/index.html" }
+    { "src": "/manifest.json", "dest": "/manifest.json" },
+    { "src": "/aeml-logo.png", "dest": "/aeml-logo.png" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
