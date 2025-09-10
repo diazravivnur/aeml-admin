@@ -20,6 +20,7 @@ function SideBar() {
     // { to: "/Admin/Dashboard", icon: faHome, label: "Dashboard" },
     { to: "/Admin/Articles", icon: faFileAlt, label: "Kegiatan" },
     { to: "/Admin/Publications", icon: faFileAlt, label: "Publications" },
+    { to: "/Admin/Questions", icon: faFileAlt, label: "Questions" },
   ];
 
   const handleLogout = () => {
