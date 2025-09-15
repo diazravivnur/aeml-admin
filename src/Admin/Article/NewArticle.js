@@ -7,6 +7,7 @@ import {
   faSave,
   faArrowLeft,
   faTimes,
+  faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -18,6 +19,7 @@ const TYPES = {
 };
 
 function NewArticle() {
+  const location = useLocation();
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [body, setBody] = useState("");
@@ -26,9 +28,10 @@ function NewArticle() {
   const [images, setImages] = useState([]); // For multiple images
   const [thumbnail, setThumbnail] = useState(null);
   const [linkDownload, setLinkDownload] = useState("");
-  const location = useLocation();
   const preselectedType = location.state?.initialType || "";
   const [type, setType] = useState(preselectedType);
+  const [createdAt, setCreatedAt] = useState(""); // Changed to string for date input
+
   const navigate = useNavigate();
 
   const handleImagesChange = (e) => {
@@ -67,8 +70,18 @@ function NewArticle() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!title || !body || images.length === 0 || !type) {
+    if (!title || images.length === 0 || !type) {
       Swal.fire("Error", "Please fill in all required fields", "error");
+      return;
+    }
+
+    if (type !== TYPES.PUBLICATION && !body) {
+      Swal.fire("Error", "Please fill in all required fields", "error");
+      return;
+    }
+
+    if (type === TYPES.PUBLICATION && !createdAt) {
+      Swal.fire("Error", "Please select a publication date", "error");
       return;
     }
 
@@ -80,11 +93,22 @@ function NewArticle() {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("subtitle", subtitle);
-    formData.append("body", body.replace(/\n/g, "<br />"));
     formData.append("type", type);
+
     images.forEach(({ file }) => formData.append("image", file));
     if (thumbnail) formData.append("thumbnail", thumbnail);
     if (linkDownload) formData.append("linkDownload", linkDownload);
+
+    if (type !== TYPES.PUBLICATION) {
+      formData.append("body", body.replace(/\n/g, "<br />"));
+    }
+
+    if (type === TYPES.PUBLICATION && createdAt) {
+      // Convert date string to ISO format
+      const dateValue = new Date(createdAt).toISOString();
+      formData.append("createdAt", dateValue);
+      console.log("Adding createdAt to payload:", dateValue); // Debug log
+    }
 
     Swal.fire({
       title: "Saving...",
@@ -96,7 +120,6 @@ function NewArticle() {
     });
 
     const endpoint = "admin/contents";
-    // const endpoint = type === TYPES.PUBLICATION ? "publications" : "articles";
     ApiService.createItem(endpoint, formData)
       .then((data) => {
         if (data.status === "Content created successfully") {
@@ -122,6 +145,9 @@ function NewArticle() {
         );
       });
   };
+
+  // Check if current type is publication
+  const isPublicationType = type === TYPES.PUBLICATION;
 
   return (
     <AdminLayout
@@ -164,6 +190,7 @@ function NewArticle() {
                 <p className="text-red-500 text-sm mt-1">{titleError}</p>
               )}
             </div>
+
             {/* Subtitle Input */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
@@ -181,28 +208,61 @@ function NewArticle() {
                 <p className="text-red-500 text-sm mt-1">{subtitleError}</p>
               )}
             </div>
-            {/* Body Textarea */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-bold mb-2">Body</label>
-              <textarea
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
-                rows="18"
-                required
-              ></textarea>
-            </div>
-            {/* Type (auto-filled and locked when coming from a section) */}
+
+            {/* Publication Date - Only show for publication type */}
+            {isPublicationType && (
+              <div className="mb-4">
+                <label className="block text-gray-700 font-bold mb-2">
+                  <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
+                  Publication Date
+                </label>
+                <input
+                  type="date"
+                  value={createdAt}
+                  onChange={(e) => setCreatedAt(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                  required={isPublicationType}
+                />
+              </div>
+            )}
+
+            {/* Body - Hide for publication type */}
+            {!isPublicationType && (
+              <div className="mb-4">
+                <label className="block text-gray-700 font-bold mb-2">
+                  Body
+                </label>
+                <textarea
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                  rows="18"
+                  required={!isPublicationType}
+                ></textarea>
+              </div>
+            )}
+
+            {/* Show message for publication type */}
+            {isPublicationType && (
+              <div className="mb-4 p-4 border rounded-lg bg-blue-50 border-blue-200">
+                <p className="text-blue-700 font-medium">
+                  <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
+                  This is a publication article. Body content is not required
+                  for this type.
+                </p>
+              </div>
+            )}
+
+            {/* Type Select */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">Type</label>
               {preselectedType ? (
-                <select
+                <input
+                  type="text"
                   value={type}
-                  disabled
-                  className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-700"
-                >
-                  <option value={type}>{type}</option>
-                </select>
+                  readOnly
+                  className="w-full px-3 py-2 border rounded-lg bg-gray-100"
+                />
               ) : (
                 <select
                   value={type}
@@ -225,6 +285,7 @@ function NewArticle() {
                 </select>
               )}
             </div>
+
             {/* Images Upload */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
@@ -239,54 +300,46 @@ function NewArticle() {
               />
               <div className="grid grid-cols-3 gap-4 mt-4">
                 {images.map((image, index) => (
-                  <div key={index} className="relative group">
+                  <div key={index} className="relative">
                     <img
                       src={image.preview}
                       alt={`Preview ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-md"
+                      className="w-full h-32 object-cover rounded-md border"
                     />
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(index)}
-                      className="absolute top-0 right-0 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full hover:bg-red-700 transition-colors"
+                      title="Remove image"
                     >
-                      <FontAwesomeIcon icon={faTimes} />
+                      <FontAwesomeIcon icon={faTimes} className="text-xs" />
                     </button>
                   </div>
                 ))}
               </div>
             </div>
-            {/* Thumbnail Upload */}
-            {/* <div className="mb-4">
-              <label className="block text-gray-700 font-bold mb-2">
-                Thumbnail
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setThumbnail(e.target.files[0])}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-            </div> */}
+
             {/* Link Download Input */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
-                Link to Download
+                Download Link
               </label>
               <input
-                type="text"
+                type="url"
                 value={linkDownload}
                 onChange={(e) => setLinkDownload(e.target.value)}
+                placeholder="https://example.com/download"
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
+
             {/* Submit Button */}
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-600"
+                className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-600 transition-colors"
               >
-                <FontAwesomeIcon icon={faSave} /> Save
+                <FontAwesomeIcon icon={faSave} className="mr-2" /> Save
               </button>
             </div>
           </form>

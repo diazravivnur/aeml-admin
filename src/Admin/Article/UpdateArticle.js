@@ -8,6 +8,7 @@ import {
   faArrowLeft,
   faSave,
   faTimes,
+  faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import Domain from "../../Api/Api";
 import { AuthToken } from "../../Api/Api";
@@ -28,6 +29,7 @@ function GetArticle() {
     image: [],
     thumbnail: null,
     linkDownload: "",
+    createdAt: "", // Added for publication date
   });
 
   useEffect(() => {
@@ -37,6 +39,14 @@ function GetArticle() {
       })
       .then((response) => {
         const article = response.data.data;
+
+        // Format the createdAt date for input field
+        let formattedDate = "";
+        if (article.createdAt) {
+          const date = new Date(article.createdAt);
+          formattedDate = date.toISOString().split("T")[0];
+        }
+
         setFormData({
           title: article.title,
           subtitle: article.subtitle || "",
@@ -45,6 +55,7 @@ function GetArticle() {
           image: article.images || [],
           thumbnail: article.thumbnail || null,
           linkDownload: article.linkDownload || "",
+          createdAt: formattedDate,
         });
         setLoading(false);
         Swal.close(); // Close the loading modal here
@@ -133,6 +144,17 @@ function GetArticle() {
             });
           } else if (key === "thumbnail" && formData.thumbnail) {
             payload.append("thumbnail", formData.thumbnail);
+          } else if (key === "createdAt") {
+            // Only include createdAt for publikasi type and when it has a value
+            if (
+              formData.type.toLowerCase() === "publication" &&
+              formData.createdAt
+            ) {
+              // Convert date to proper format for backend
+              const dateValue = new Date(formData.createdAt).toISOString();
+              payload.append("createdAt", dateValue);
+              console.log("Adding createdAt to payload:", dateValue); // Debug log
+            }
           } else {
             payload.append(key, formData[key]);
           }
@@ -176,6 +198,9 @@ function GetArticle() {
       });
   };
 
+  // Check if current type is publikasi
+  const isPublikasi = formData.type.toLowerCase() === "publication";
+
   return (
     <>
       {loading ? (
@@ -209,6 +234,7 @@ function GetArticle() {
                 required
               />
             </div>
+
             {/* Subtitle Input */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
@@ -222,34 +248,69 @@ function GetArticle() {
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
-            {/* Body Textarea (Editing Mode) */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-bold mb-2">Body</label>
-              <textarea
-                name="body"
-                value={formData.body.replace(/<br\s*\/?>/g, "\n")} // Convert <br> to newlines for editing
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    body: e.target.value.replace(/\n/g, "<br />"),
-                  })
-                } // Convert newlines back to <br />
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
-                rows="6"
-                required
-              ></textarea>
-            </div>
 
-            {/* Body Preview (Formatted Output) */}
-            <div className="mb-4 p-4 border rounded-lg bg-gray-100">
-              <label className="block text-gray-700 font-bold mb-2">
-                Preview
-              </label>
-              <div
-                className="prose max-w-none"
-                dangerouslySetInnerHTML={{ __html: formData.body }}
-              ></div>
-            </div>
+            {/* Publication Date - Only show for publikasi type */}
+            {isPublikasi && (
+              <div className="mb-4">
+                <label className="block text-gray-700 font-bold mb-2">
+                  <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
+                  Publication Date
+                </label>
+                <input
+                  type="date"
+                  name="createdAt"
+                  value={formData.createdAt}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+              </div>
+            )}
+
+            {/* Body Textarea - Hide for publikasi type */}
+            {!isPublikasi && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Body
+                  </label>
+                  <textarea
+                    name="body"
+                    value={formData.body.replace(/<br\s*\/?>/g, "\n")} // Convert <br> to newlines for editing
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        body: e.target.value.replace(/\n/g, "<br />"),
+                      })
+                    } // Convert newlines back to <br />
+                    className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                    rows="6"
+                    required
+                  ></textarea>
+                </div>
+
+                {/* Body Preview - Only show for non-publikasi types */}
+                <div className="mb-4 p-4 border rounded-lg bg-gray-100">
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Preview
+                  </label>
+                  <div
+                    className="prose max-w-none"
+                    dangerouslySetInnerHTML={{ __html: formData.body }}
+                  ></div>
+                </div>
+              </>
+            )}
+
+            {/* Show message for publikasi type */}
+            {isPublikasi && (
+              <div className="mb-4 p-4 border rounded-lg bg-blue-50 border-blue-200">
+                <p className="text-blue-700 font-medium">
+                  <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
+                  This is a publication article. Body content editing is not
+                  available for this type.
+                </p>
+              </div>
+            )}
 
             {/* Type Display */}
             <div className="mb-4">
@@ -262,6 +323,7 @@ function GetArticle() {
                 className="w-full px-3 py-2 border rounded-lg bg-gray-100"
               />
             </div>
+
             {/* Pictures Upload */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
@@ -272,6 +334,7 @@ function GetArticle() {
                 name="image"
                 onChange={handleFileChange}
                 multiple
+                accept="image/*"
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
               />
               <div className="grid grid-cols-3 gap-4 mt-4">
@@ -284,44 +347,36 @@ function GetArticle() {
                           : URL.createObjectURL(image)
                       }
                       alt={`Preview ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-md"
+                      className="w-full h-32 object-cover rounded-md border"
                     />
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(index)}
-                      className="absolute top-0 right-0 bg-red-600 text-white p-1 rounded-full"
+                      className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full hover:bg-red-700 transition-colors"
+                      title="Remove image"
                     >
-                      <FontAwesomeIcon icon={faTimes} />
+                      <FontAwesomeIcon icon={faTimes} className="text-xs" />
                     </button>
                   </div>
                 ))}
               </div>
             </div>
-            {/* Thumbnail Upload */}
-            {/* <div className="mb-4">
-              <label className="block text-gray-700 font-bold mb-2">
-                Thumbnail
-              </label>
-              <input
-                type="file"
-                name="thumbnail"
-                onChange={handleFileChange}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-            </div> */}
+
             {/* Download Link */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
                 Download Link
               </label>
               <input
-                type="text"
+                type="url"
                 name="linkDownload"
                 value={formData.linkDownload}
                 onChange={handleChange}
+                placeholder="https://example.com/download"
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
+
             {/* Submit Button */}
             <div className="flex justify-end">
               {updating ? (
@@ -329,9 +384,9 @@ function GetArticle() {
               ) : (
                 <button
                   type="submit"
-                  className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-600"
+                  className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-600 transition-colors"
                 >
-                  <FontAwesomeIcon icon={faSave} /> Update
+                  <FontAwesomeIcon icon={faSave} className="mr-2" /> Update
                 </button>
               )}
             </div>

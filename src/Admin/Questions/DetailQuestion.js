@@ -66,7 +66,7 @@ function DetailQuestion() {
             </p>
 
             {/* Answers */}
-            <h3 className="text-lg font-semibold mb-2">Answers</h3>
+            <h3 className="text-lg font-semibold mb-2">Response</h3>
             {question.answers?.length > 0 ? (
               <ul>
                 {question.answers.map((a) => (
