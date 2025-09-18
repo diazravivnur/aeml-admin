@@ -166,7 +166,7 @@ function GetArticle() {
             payload.append("thumbnail", formData.thumbnail);
           } else if (key === "createdAt") {
             if (
-              (formData.type.toLowerCase() === "publikasi" ||
+              (formData.type.toLowerCase() === "publication" ||
                 formData.type.toLowerCase() === "kegiatan") &&
               formData.createdAt
             ) {
@@ -218,7 +218,7 @@ function GetArticle() {
   };
 
   // Check if current type is publikasi
-  const isPublikasi = formData.type.toLowerCase() === "publikasi";
+  const isPublikasi = formData.type.toLowerCase() === "publication";
   const isKegiatan = formData.type.toLowerCase() === "kegiatan";
 
   return (
