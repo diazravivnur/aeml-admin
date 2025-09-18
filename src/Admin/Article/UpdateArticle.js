@@ -18,7 +18,6 @@ function GetArticle() {
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
   const [removedImages, setRemovedImages] = useState([]);
-  const [updating, setUpdating] = useState(false);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -70,13 +69,13 @@ function GetArticle() {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === "title" && value.length > 140) {
-      Swal.fire("Error", "Title cannot exceed 140 characters.", "error");
+    if (name === "title" && value.length > 100) {
+      Swal.fire("Error", "Title cannot exceed 100 characters.", "error");
       return;
     }
 
-    if (name === "subtitle" && value.length > 255) {
-      Swal.fire("Error", "Subtitle cannot exceed 255 characters.", "error");
+    if (name === "subtitle" && value.length > 120) {
+      Swal.fire("Error", "Subtitle cannot exceed 120 characters.", "error");
       return;
     }
 
@@ -85,6 +84,27 @@ function GetArticle() {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
+
+    // For kegiatan type, limit to 1 image total
+    if (formData.type.toLowerCase() === "kegiatan") {
+      if (formData.image.length >= 1) {
+        Swal.fire(
+          "Error",
+          "For kegiatan, you can only have 1 image. Please remove the existing image first.",
+          "error"
+        );
+        return;
+      }
+      if (files.length > 1) {
+        Swal.fire(
+          "Error",
+          "For kegiatan, please select only 1 image at a time.",
+          "error"
+        );
+        return;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       image: [...prev.image, ...files],
@@ -145,15 +165,14 @@ function GetArticle() {
           } else if (key === "thumbnail" && formData.thumbnail) {
             payload.append("thumbnail", formData.thumbnail);
           } else if (key === "createdAt") {
-            // Only include createdAt for publikasi type and when it has a value
             if (
-              formData.type.toLowerCase() === "publication" &&
+              (formData.type.toLowerCase() === "publikasi" ||
+                formData.type.toLowerCase() === "kegiatan") &&
               formData.createdAt
             ) {
-              // Convert date to proper format for backend
               const dateValue = new Date(formData.createdAt).toISOString();
               payload.append("createdAt", dateValue);
-              console.log("Adding createdAt to payload:", dateValue); // Debug log
+              console.log("Adding createdAt to payload:", dateValue);
             }
           } else {
             payload.append(key, formData[key]);
@@ -199,7 +218,8 @@ function GetArticle() {
   };
 
   // Check if current type is publikasi
-  const isPublikasi = formData.type.toLowerCase() === "publication";
+  const isPublikasi = formData.type.toLowerCase() === "publikasi";
+  const isKegiatan = formData.type.toLowerCase() === "kegiatan";
 
   return (
     <>
@@ -249,12 +269,12 @@ function GetArticle() {
               />
             </div>
 
-            {/* Publication Date - Only show for publikasi type */}
-            {isPublikasi && (
+            {/* Date - Show for both publikasi and kegiatan types */}
+            {(isPublikasi || isKegiatan) && (
               <div className="mb-4">
                 <label className="block text-gray-700 font-bold mb-2">
                   <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
-                  Publication Date
+                  {isPublikasi ? "Publication Date" : "Kegiatan Date"}
                 </label>
                 <input
                   type="date"
@@ -327,13 +347,18 @@ function GetArticle() {
             {/* Pictures Upload */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
-                Images
+                Images{" "}
+                {isKegiatan && (
+                  <span className="text-sm text-gray-500">
+                    (Maximum 1 image)
+                  </span>
+                )}
               </label>
               <input
                 type="file"
                 name="image"
                 onChange={handleFileChange}
-                multiple
+                multiple={!isKegiatan}
                 accept="image/*"
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
               />
@@ -379,16 +404,12 @@ function GetArticle() {
 
             {/* Submit Button */}
             <div className="flex justify-end">
-              {updating ? (
-                <Loading />
-              ) : (
-                <button
-                  type="submit"
-                  className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-600 transition-colors"
-                >
-                  <FontAwesomeIcon icon={faSave} className="mr-2" /> Update
-                </button>
-              )}
+              <button
+                type="submit"
+                className="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-600 transition-colors"
+              >
+                <FontAwesomeIcon icon={faSave} className="mr-2" /> Update
+              </button>
             </div>
           </form>
         </div>

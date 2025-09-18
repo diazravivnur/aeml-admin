@@ -1,4 +1,4 @@
-// ApiService.js
+// ApiService.js - Fixed Version
 import Domain from "../../Api/Api";
 import { AuthToken } from "../../Api/Api";
 
@@ -10,6 +10,11 @@ const ApiService = {
           Authorization: `Bearer ${AuthToken()}`,
         },
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       return response.json();
     } catch (error) {
       console.error("Error fetching list:", error);
@@ -24,6 +29,11 @@ const ApiService = {
           Authorization: `Bearer ${AuthToken()}`,
         },
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       return response.json();
     } catch (error) {
       console.error("Error fetching item:", error);
@@ -41,6 +51,11 @@ const ApiService = {
         },
         body: formData,
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       return response.json();
     } catch (error) {
       console.error("Error creating item:", error);
@@ -97,6 +112,30 @@ const ApiService = {
       return response.json();
     } catch (error) {
       console.error("Error deleting item:", error);
+      throw error;
+    }
+  },
+
+  // 🆕 NEW: Helper method for updating questions specifically
+  updateQuestion: async (id, questionText) => {
+    try {
+      const response = await fetch(`${Domain()}/questions/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${AuthToken()}`,
+        },
+        body: JSON.stringify({ question: questionText }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed with status ${response.status}: ${errorText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error("Error updating question:", error);
       throw error;
     }
   },

@@ -8,38 +8,61 @@ import {
   faPen,
   faToggleOn,
   faToggleOff,
-  faFileExcel,
 } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import moment from "moment";
 import Loading from "../../layouts/Loading";
-import * as XLSX from "xlsx";
 import axios from "axios";
 import Domain, { AuthToken } from "../../Api/Api";
 
 function QuestionsData({ questions, onToggleStatus }) {
   const handleToggleStatus = async (questionId, currentStatus) => {
     try {
-      const result = await Swal.fire({
-        title: "Change Status?",
-        text: `Are you sure you want to ${
-          currentStatus ? "deactivate" : "activate"
-        } this question?`,
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Yes, change it!",
-        cancelButtonText: "Cancel",
-      });
-
-      if (result.isConfirmed) {
-        await onToggleStatus(questionId, !currentStatus);
-        Swal.fire(
-          "Success!",
-          `Question has been ${!currentStatus ? "activated" : "deactivated"}.`,
-          "success"
+      // If trying to activate a question, show warning about deactivating others
+      if (!currentStatus) {
+        const activeQuestions = questions.filter(
+          (q) => q.isActive !== false && q.id !== questionId
         );
+
+        let confirmText = "Are you sure you want to activate this question?";
+        if (activeQuestions.length > 0) {
+          confirmText += ` This will automatically deactivate ${activeQuestions.length} other active question(s).`;
+        }
+
+        const result = await Swal.fire({
+          title: "Activate Question?",
+          text: confirmText,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Yes, activate it!",
+          cancelButtonText: "Cancel",
+        });
+
+        if (result.isConfirmed) {
+          await onToggleStatus(questionId, true);
+          Swal.fire(
+            "Success!",
+            "Question has been activated and others have been deactivated.",
+            "success"
+          );
+        }
+      } else {
+        // Deactivating current question
+        const result = await Swal.fire({
+          title: "Deactivate Question?",
+          text: "Are you sure you want to deactivate this question?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Yes, deactivate it!",
+          cancelButtonText: "Cancel",
+        });
+
+        if (result.isConfirmed) {
+          await onToggleStatus(questionId, false);
+          Swal.fire("Success!", "Question has been deactivated.", "success");
+        }
       }
     } catch (error) {
       Swal.fire("Error", "Failed to update question status", "error");
@@ -49,6 +72,18 @@ function QuestionsData({ questions, onToggleStatus }) {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Questions</h1>
+
+      {/* Warning message if more than one active question */}
+      {questions.filter((q) => q.isActive !== false).length > 1 && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+          <p className="font-bold">Warning!</p>
+          <p>
+            Multiple questions are currently active. Only one question should be
+            active at a time.
+          </p>
+        </div>
+      )}
+
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full bg-white">
           <thead className="bg-gray-800 text-white">
@@ -128,78 +163,57 @@ function Questions() {
 
   const handleToggleStatus = async (questionId, newStatus) => {
     try {
-      // Update via your existing PUT endpoint
-      await axios.put(
-        `${Domain()}/questions/${questionId}`,
-        { isActive: newStatus },
-        {
-          headers: { Authorization: "Bearer " + AuthToken() },
+      if (newStatus) {
+        // If activating a question, first deactivate all other questions
+        const otherActiveQuestions = questions.filter(
+          (q) => q.isActive !== false && q.id !== questionId
+        );
+
+        // Deactivate all other questions first
+        for (const question of otherActiveQuestions) {
+          await axios.put(
+            `${Domain()}/questions/${question.id}`,
+            { isActive: false },
+            {
+              headers: { Authorization: "Bearer " + AuthToken() },
+            }
+          );
         }
-      );
 
-      // Update local state
-      setQuestions((prev) =>
-        prev.map((q) =>
-          q.id === questionId ? { ...q, isActive: newStatus } : q
-        )
-      );
+        // Then activate the selected question
+        await axios.put(
+          `${Domain()}/questions/${questionId}`,
+          { isActive: true },
+          {
+            headers: { Authorization: "Bearer " + AuthToken() },
+          }
+        );
+
+        // Update local state - deactivate all others, activate selected
+        setQuestions((prev) =>
+          prev.map((q) => ({
+            ...q,
+            isActive: q.id === questionId ? true : false,
+          }))
+        );
+      } else {
+        // Deactivating question
+        await axios.put(
+          `${Domain()}/questions/${questionId}`,
+          { isActive: false },
+          {
+            headers: { Authorization: "Bearer " + AuthToken() },
+          }
+        );
+
+        // Update local state
+        setQuestions((prev) =>
+          prev.map((q) => (q.id === questionId ? { ...q, isActive: false } : q))
+        );
+      }
     } catch (error) {
+      console.error("Error updating question status:", error);
       throw new Error("Failed to update question status");
-    }
-  };
-
-  const exportToExcel = () => {
-    try {
-      // Prepare data for Excel
-      const exportData = questions.map((q, index) => ({
-        No: index + 1,
-        Question: q.question,
-        "Response Count": q.answers?.length || 0,
-        Status: q.isActive !== false ? "Active" : "Inactive",
-        "Created Date": moment(q.createdAt).format("MMM D, YYYY h:mm A"),
-        "Updated Date": q.updatedAt
-          ? moment(q.updatedAt).format("MMM D, YYYY h:mm A")
-          : "N/A",
-        Answers: q.answers?.map((a) => a.answer).join(" | ") || "No answers",
-      }));
-
-      // Create workbook and worksheet
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(exportData);
-
-      // Set column widths
-      const colWidths = [
-        { wch: 5 }, // No
-        { wch: 50 }, // Question
-        { wch: 15 }, // Response Count
-        { wch: 10 }, // Status
-        { wch: 20 }, // Created Date
-        { wch: 20 }, // Updated Date
-        { wch: 50 }, // Answers
-      ];
-      ws["!cols"] = colWidths;
-
-      // Add worksheet to workbook
-      XLSX.utils.book_append_sheet(wb, ws, "Questions");
-
-      // Generate filename with current date
-      const filename = `Questions_Export_${moment().format(
-        "YYYY-MM-DD_HH-mm-ss"
-      )}.xlsx`;
-
-      // Write and download file
-      XLSX.writeFile(wb, filename);
-
-      Swal.fire({
-        title: "Success!",
-        text: "Questions data has been exported to Excel",
-        icon: "success",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      console.error("Export error:", error);
-      Swal.fire("Error", "Failed to export data to Excel", "error");
     }
   };
 
@@ -218,14 +232,6 @@ function Questions() {
               >
                 <FontAwesomeIcon icon={faPlus} /> New Question
               </Link>
-
-              {/* Export to Excel Button */}
-              <button
-                onClick={exportToExcel}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 flex items-center gap-2"
-              >
-                <FontAwesomeIcon icon={faFileExcel} /> Export to Excel
-              </button>
             </div>
 
             {/* Status Filter */}

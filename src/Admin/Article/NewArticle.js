@@ -1,6 +1,4 @@
 import AdminLayout from "../../layouts/AdminLayout";
-import Domain from "../../Api/Api";
-import { AuthToken } from "../../Api/Api";
 import ApiService from "../Services/ApiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -17,7 +15,12 @@ const TYPES = {
   KEGIATAN: "kegiatan",
   PUBLICATION: "publication",
 };
-
+const MAX_TITLE_LENGTH = 100;
+const MAX_SUBTITLE_LENGTH = 120;
+const MAX_IMAGES = {
+  [TYPES.KEGIATAN]: 1, // kegiatan max 1 image
+  [TYPES.PUBLICATION]: 1, // contoh: publikasi max 5 image (bisa ubah sesuai kebutuhan)
+};
 function NewArticle() {
   const location = useLocation();
   const [title, setTitle] = useState("");
@@ -26,7 +29,6 @@ function NewArticle() {
   const [subtitleError, setSubtitleError] = useState("");
   const [titleError, setTitleError] = useState("");
   const [images, setImages] = useState([]); // For multiple images
-  const [thumbnail, setThumbnail] = useState(null);
   const [linkDownload, setLinkDownload] = useState("");
   const preselectedType = location.state?.initialType || "";
   const [type, setType] = useState(preselectedType);
@@ -35,12 +37,28 @@ function NewArticle() {
   const navigate = useNavigate();
 
   const handleImagesChange = (e) => {
-    const files = Array.from(e.target.files); // Convert FileList to Array
+    const files = Array.from(e.target.files);
+    const maxImages = MAX_IMAGES[type] || 10; // default 10 kalau ga ada type
+
+    if (images.length + files.length > maxImages) {
+      Swal.fire(
+        "Error",
+        `You can only upload up to ${maxImages} image(s) for ${type}.`,
+        "error"
+      );
+      return;
+    }
+
     const newImages = files.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
     }));
-    setImages((prevImages) => [...prevImages, ...newImages]); // Append new images
+
+    if (type === TYPES.KEGIATAN) {
+      setImages(newImages); // Replace existing image for kegiatan
+    } else {
+      setImages((prevImages) => [...prevImages, ...newImages]); // Append for other types
+    }
   };
 
   const handleRemoveImage = (index) => {
@@ -49,8 +67,10 @@ function NewArticle() {
 
   const handleSubtitleChange = (e) => {
     const value = e.target.value;
-    if (value.length > 255) {
-      setSubtitleError("Subtitle cannot exceed 255 characters.");
+    if (value.length > MAX_SUBTITLE_LENGTH) {
+      setSubtitleError(
+        `Subtitle cannot exceed ${MAX_SUBTITLE_LENGTH} characters.`
+      );
     } else {
       setSubtitleError("");
     }
@@ -59,8 +79,8 @@ function NewArticle() {
 
   const handleTitleChange = (e) => {
     const value = e.target.value;
-    if (value.length > 140) {
-      setTitleError("Title cannot exceed 140 characters.");
+    if (value.length > MAX_TITLE_LENGTH) {
+      setTitleError(`Title cannot exceed ${MAX_TITLE_LENGTH} characters.`);
     } else {
       setTitleError("");
     }
@@ -85,6 +105,11 @@ function NewArticle() {
       return;
     }
 
+    if (type === TYPES.KEGIATAN && !createdAt) {
+      Swal.fire("Error", "Please select a date for kegiatan", "error");
+      return;
+    }
+
     if (subtitleError || titleError) {
       Swal.fire("Error", "Please fix the errors before submitting.", "error");
       return;
@@ -96,14 +121,13 @@ function NewArticle() {
     formData.append("type", type);
 
     images.forEach(({ file }) => formData.append("image", file));
-    if (thumbnail) formData.append("thumbnail", thumbnail);
     if (linkDownload) formData.append("linkDownload", linkDownload);
 
     if (type !== TYPES.PUBLICATION) {
       formData.append("body", body.replace(/\n/g, "<br />"));
     }
 
-    if (type === TYPES.PUBLICATION && createdAt) {
+    if ((type === TYPES.PUBLICATION || type === TYPES.KEGIATAN) && createdAt) {
       // Convert date string to ISO format
       const dateValue = new Date(createdAt).toISOString();
       formData.append("createdAt", dateValue);
@@ -146,8 +170,10 @@ function NewArticle() {
       });
   };
 
-  // Check if current type is publication
+  // Check if current type is publication or kegiatan (both need date)
   const isPublicationType = type === TYPES.PUBLICATION;
+  const isKegiatanType = type === TYPES.KEGIATAN;
+  const needsDate = isPublicationType || isKegiatanType;
 
   return (
     <AdminLayout
@@ -209,19 +235,19 @@ function NewArticle() {
               )}
             </div>
 
-            {/* Publication Date - Only show for publication type */}
-            {isPublicationType && (
+            {/* Date - Show for both publication and kegiatan types */}
+            {needsDate && (
               <div className="mb-4">
                 <label className="block text-gray-700 font-bold mb-2">
                   <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
-                  Publication Date
+                  {isPublicationType ? "Publication Date" : "Kegiatan Date"}
                 </label>
                 <input
                   type="date"
                   value={createdAt}
                   onChange={(e) => setCreatedAt(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
-                  required={isPublicationType}
+                  required={needsDate}
                 />
               </div>
             )}
@@ -289,12 +315,17 @@ function NewArticle() {
             {/* Images Upload */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
-                Images
+                Images{" "}
+                {isKegiatanType && (
+                  <span className="text-sm text-gray-500">
+                    (Maximum 1 image)
+                  </span>
+                )}
               </label>
               <input
                 type="file"
                 accept="image/*"
-                multiple
+                multiple={!isKegiatanType}
                 onChange={handleImagesChange}
                 className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
               />
