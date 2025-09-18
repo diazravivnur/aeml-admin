@@ -1,7 +1,5 @@
 {
   "rewrites": [
-    { "source": "/manifest.json", "destination": "/manifest.json" },
-    { "source": "/aeml-logo.png", "destination": "/aeml-logo.png" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?!.*\\.(?:json|png|jpg|jpeg|gif|svg|ico)).*)", "destination": "/index.html" }
   ]
 }
